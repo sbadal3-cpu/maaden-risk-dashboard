@@ -127,26 +127,34 @@ export default function DashboardPage() {
         </AnimatePresence>
       </main>
 
-      {/* 🔥 DECISION PANEL */}
+      {/* 🔥 FINAL DECISION PANEL */}
       {selectedSignal && (() => {
 
         const mapping = mapToMaaden(selectedSignal)
         const baseImpact = calculateImpact(selectedSignal)
 
-        // 🔥 APPLY SCENARIO
-        let multiplier = scenarioLevel
-        if (rateShock) multiplier += 0.5
-        if (costShock) multiplier += 0.5
+        // 🔥 FINANCIAL MODEL
+        const revenueBase = 120_000_000_000 // SAR baseline
 
-        const impact = {
+        let multiplier = scenarioLevel
+        if (rateShock) multiplier += 0.4
+        if (costShock) multiplier += 0.4
+
+        const pctImpact = {
           base: baseImpact.base * multiplier,
           moderate: baseImpact.moderate * multiplier,
           severe: baseImpact.severe * multiplier,
         }
 
+        const sarImpact = {
+          base: (pctImpact.base / 100) * revenueBase,
+          moderate: (pctImpact.moderate / 100) * revenueBase,
+          severe: (pctImpact.severe / 100) * revenueBase,
+        }
+
         const severity =
-          Math.abs(impact.severe) > 5 ? "Critical" :
-          Math.abs(impact.severe) > 3 ? "High" :
+          Math.abs(pctImpact.severe) > 8 ? "Critical" :
+          Math.abs(pctImpact.severe) > 4 ? "High" :
           "Moderate"
 
         return (
@@ -161,12 +169,11 @@ export default function DashboardPage() {
             <div className="text-sm font-semibold mb-2">{selectedSignal.title}</div>
 
             <div className="text-xs text-gray-400 mb-4">
-              {selectedSignal.source} | {severity}
+              Source: {selectedSignal.source} | {severity}
             </div>
 
-            {/* 🔥 SCENARIO CONTROLS */}
+            {/* SCENARIO */}
             <div className="mb-4 border border-white/10 p-3 rounded bg-black/30">
-
               <div className="text-xs text-gray-400 mb-2">Scenario Controls</div>
 
               <input
@@ -179,7 +186,7 @@ export default function DashboardPage() {
                 className="w-full"
               />
 
-              <div className="text-xs mt-2">Stress Level: {scenarioLevel.toFixed(1)}x</div>
+              <div className="text-xs mt-2">Stress: {scenarioLevel.toFixed(1)}x</div>
 
               <div className="flex gap-2 mt-2 text-xs">
                 <button onClick={() => setRateShock(!rateShock)} className="px-2 py-1 border rounded">
@@ -189,7 +196,6 @@ export default function DashboardPage() {
                   Cost Shock
                 </button>
               </div>
-
             </div>
 
             {/* MAADEN */}
@@ -199,20 +205,29 @@ export default function DashboardPage() {
               <div className="text-sm text-red-400">{mapping.impact}</div>
             </div>
 
-            {/* IMPACT */}
+            {/* 🔥 FINANCIAL IMPACT */}
             <div className="mb-4 border border-white/10 p-3 rounded bg-black/30">
-              <div className="text-xs text-gray-400 mb-2">Financial Impact</div>
-              <div className="text-sm text-red-400">Base: {impact.base.toFixed(1)}%</div>
-              <div className="text-sm text-orange-400">Moderate: {impact.moderate.toFixed(1)}%</div>
-              <div className="text-sm text-red-500 font-bold">Severe: {impact.severe.toFixed(1)}%</div>
+              <div className="text-xs text-gray-400 mb-2">Financial Impact (Estimated)</div>
+
+              <div className="text-sm text-red-400">
+                Base: {pctImpact.base.toFixed(1)}% (~SAR {(sarImpact.base / 1e9).toFixed(1)}B)
+              </div>
+
+              <div className="text-sm text-orange-400">
+                Moderate: {pctImpact.moderate.toFixed(1)}% (~SAR {(sarImpact.moderate / 1e9).toFixed(1)}B)
+              </div>
+
+              <div className="text-sm text-red-500 font-bold">
+                Severe: {pctImpact.severe.toFixed(1)}% (~SAR {(sarImpact.severe / 1e9).toFixed(1)}B)
+              </div>
             </div>
 
-            {/* DECISION */}
+            {/* ACTION */}
             <div className="mb-4">
               <div className="text-sm font-bold text-green-400 mb-2">Recommended Action</div>
-              {severity === "Critical" && <div>Immediate mitigation required. Adjust capital allocation.</div>}
-              {severity === "High" && <div>Monitor closely and hedge exposure.</div>}
-              {severity === "Moderate" && <div>Track trend, no immediate action.</div>}
+              {severity === "Critical" && <div>Immediate mitigation required.</div>}
+              {severity === "High" && <div>Hedge exposure and monitor closely.</div>}
+              {severity === "Moderate" && <div>Track trend.</div>}
             </div>
 
             <a href={selectedSignal.url} target="_blank" className="text-blue-400 underline">
@@ -233,6 +248,7 @@ export default function DashboardPage() {
   )
 }
 
+/* 🔥 HEATMAP TAB FIXED */
 function HeatmapTab({ onSelectRisk, selectedRisk, news, onSelectSignal }: any) {
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -241,10 +257,18 @@ function HeatmapTab({ onSelectRisk, selectedRisk, news, onSelectSignal }: any) {
 
       <div className="flex flex-1 gap-4 min-h-0">
 
-        <div className="flex-[2] border border-white/10 rounded p-4 bg-[#111] flex flex-col">
-          <RiskHeatmap onSelectRisk={onSelectRisk} selectedRisk={selectedRisk} />
+        {/* 🔥 HEATMAP FIX */}
+        <div className="flex-[2] border border-white/10 rounded p-4 bg-[#111] flex flex-col overflow-hidden">
+
+          <div className="overflow-x-auto">
+            <div className="min-w-[900px]">
+              <RiskHeatmap onSelectRisk={onSelectRisk} selectedRisk={selectedRisk} />
+            </div>
+          </div>
+
         </div>
 
+        {/* SIDE PANEL */}
         <div className="flex-[1] flex flex-col gap-4 overflow-y-auto pr-2">
 
           <div className="border border-white/10 rounded p-4 bg-[#111]">
