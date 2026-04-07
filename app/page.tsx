@@ -1,258 +1,325 @@
-"use client"
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
-import { useState, useEffect, useCallback } from "react"
-import { AnimatePresence, motion } from "framer-motion"
+@custom-variant dark (&:is(.dark *));
 
-import { DashboardHeader } from "@/components/dashboard/header"
-import { StatsBar } from "@/components/dashboard/stats-bar"
-import { RiskHeatmap } from "@/components/dashboard/risk-heatmap"
-import { GlobalBenchmarks } from "@/components/dashboard/global-benchmarks"
-import { AIAdvisor } from "@/components/dashboard/ai-advisor"
-import { RiskTable } from "@/components/dashboard/risk-table"
-import { RiskDetailView } from "@/components/dashboard/risk-detail-view"
-import { CurrencyToggle, type Currency } from "@/components/dashboard/currency-toggle"
-import { LiveTicker } from "@/components/dashboard/live-ticker"
-import { MarketIntelligence } from "@/components/dashboard/market-intelligence"
-import { ConnectionStatus } from "@/components/dashboard/connection-status"
-import { ExportToast } from "@/components/dashboard/export-toast"
-
-import TopAlerts from "@/components/dashboard/top-alerts"
-import RiskSignals from "@/components/dashboard/risk-signals"
-
-import { mapToMaaden } from "@/lib/intelligence"
-import { calculateImpact } from "@/lib/impact-engine"
-
-import { Grid3X3, Database, Sparkles } from "lucide-react"
-
-type Tab = "heatmap" | "universe" | "advisor"
-
-/* 🔥 THEMES */
-const themes = {
-  dark: {
-    bg: "bg-background",
-    card: "bg-[#111]",
-    border: "border-white/10",
-    text: "text-white",
-    sub: "text-gray-400",
-  },
-  executive: {
-    bg: "bg-[#0b1d2a]",
-    card: "bg-[#112e42]",
-    border: "border-blue-400/20",
-    text: "text-blue-100",
-    sub: "text-blue-300",
-  },
-  light: {
-    bg: "bg-white",
-    card: "bg-gray-100",
-    border: "border-gray-300",
-    text: "text-black",
-    sub: "text-gray-600",
-  },
-  bloomberg: {
-    bg: "bg-[#0a0a0a]",
-    card: "bg-[#111111]",
-    border: "border-yellow-400/20",
-    text: "text-yellow-300",
-    sub: "text-yellow-500",
-  },
+/* Ma'aden Dark Command Center Theme (Default) */
+:root,
+.dark {
+  --background: #1C1C1B;
+  --foreground: #E8E2D0;
+  --card: #242422;
+  --card-foreground: #E8E2D0;
+  --popover: #1C1C1B;
+  --popover-foreground: #E8E2D0;
+  --primary: #B4A56F;
+  --primary-foreground: #1C1C1B;
+  --secondary: #2A2A28;
+  --secondary-foreground: #B4A56F;
+  --muted: #2A2A28;
+  --muted-foreground: #8A8577;
+  --accent: #B4A56F;
+  --accent-foreground: #1C1C1B;
+  --destructive: #C45C5C;
+  --destructive-foreground: #FDE8E8;
+  --border: #3A3A37;
+  --input: #2A2A28;
+  --ring: #B4A56F;
+  --chart-1: #B4A56F;
+  --chart-2: #C45C5C;
+  --chart-3: #5CB4A5;
+  --chart-4: #E8A54F;
+  --chart-5: #7B93DB;
+  --radius: 0.5rem;
+  --sidebar: #1A1A19;
+  --sidebar-foreground: #E8E2D0;
+  --sidebar-primary: #B4A56F;
+  --sidebar-primary-foreground: #1C1C1B;
+  --sidebar-accent: #2A2A28;
+  --sidebar-accent-foreground: #B4A56F;
+  --sidebar-border: #3A3A37;
+  --sidebar-ring: #B4A56F;
+  --gold: #B4A56F;
+  --gold-dim: #8A7D52;
+  --gold-glow: #C8B87A;
+  --surface-elevated: #2E2E2C;
+  --risk-critical: #E05252;
+  --risk-high: #E8A54F;
+  --risk-medium: #B4A56F;
+  --risk-low: #5CB4A5;
+  --risk-minimal: #4A7A6E;
 }
 
-const tabs = [
-  { key: "heatmap", label: "Executive Heatmap", icon: Grid3X3 },
-  { key: "universe", label: "Risk Universe", icon: Database },
-  { key: "advisor", label: "AI Advisor", icon: Sparkles },
-]
-
-export default function DashboardPage() {
-
-  const [theme, setTheme] = useState("dark")
-  const t = themes[theme as keyof typeof themes]
-
-  const [activeTab, setActiveTab] = useState<Tab>("heatmap")
-  const [selectedRisk, setSelectedRisk] = useState<any>(null)
-  const [footerCurrency, setFooterCurrency] = useState<Currency>("SAR")
-
-  const [news, setNews] = useState<any[]>([])
-  const [selectedSignal, setSelectedSignal] = useState<any>(null)
-
-  const [scenarioLevel, setScenarioLevel] = useState(1)
-  const [rateShock, setRateShock] = useState(false)
-  const [costShock, setCostShock] = useState(false)
-
-  useEffect(() => {
-    fetch("/api/news")
-      .then(res => res.json())
-      .then(data => setNews(data))
-  }, [])
-
-  const handleSelectRisk = useCallback((risk: any) => {
-    setSelectedRisk(risk)
-  }, [])
-
-  const handleBack = useCallback(() => {
-    setSelectedRisk(null)
-  }, [])
-
-  return (
-    <div className={`flex flex-col h-screen ${t.bg} ${t.text}`}>
-
-      <ExportToast />
-      <DashboardHeader />
-      <LiveTicker />
-
-      {/* 🔥 THEME SWITCHER */}
-      <div className="px-4 pt-2 flex justify-end">
-        <select
-          value={theme}
-          onChange={(e) => setTheme(e.target.value)}
-          className="text-xs border px-2 py-1 bg-black text-white"
-        >
-          <option value="dark">Dark</option>
-          <option value="executive">Executive</option>
-          <option value="light">Light</option>
-          <option value="bloomberg">Bloomberg</option>
-        </select>
-      </div>
-
-      {/* NAV */}
-      <nav className="flex items-center gap-1 px-4 pt-3">
-        {tabs.map((tab) => {
-          const Icon = tab.icon
-          const isActive = activeTab === tab.key
-
-          return (
-            <button
-              key={tab.key}
-              onClick={() => {
-                setActiveTab(tab.key)
-                setSelectedRisk(null)
-              }}
-              className="flex items-center gap-2 px-4 py-2 text-xs uppercase"
-              style={{
-                color: isActive ? "#22c55e" : "#888",
-              }}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {tab.label}
-            </button>
-          )
-        })}
-      </nav>
-
-      <main className="flex-1 overflow-hidden">
-        <AnimatePresence mode="wait">
-          {selectedRisk ? (
-            <RiskDetailView risk={selectedRisk} onBack={handleBack} />
-          ) : (
-            <motion.div className="h-full p-4 flex flex-col gap-4">
-
-              {activeTab === "heatmap" && (
-                <HeatmapTab
-                  t={t}
-                  onSelectRisk={handleSelectRisk}
-                  news={news}
-                  onSelectSignal={setSelectedSignal}
-                />
-              )}
-
-              {activeTab === "universe" && (
-                <RiskTable onSelectRisk={handleSelectRisk} />
-              )}
-
-              {activeTab === "advisor" && <AIAdvisor />}
-
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
-
-      {/* 🔥 DECISION PANEL */}
-      {selectedSignal && (() => {
-
-        const mapping = mapToMaaden(selectedSignal)
-        const baseImpact = calculateImpact(selectedSignal)
-
-        let multiplier = scenarioLevel
-        if (rateShock) multiplier += 0.4
-        if (costShock) multiplier += 0.4
-
-        const pct = baseImpact.severe * multiplier
-        const sar = (pct / 100) * 120_000_000_000
-
-        return (
-          <div className={`fixed right-0 top-0 h-full w-[450px] ${t.card} border-l ${t.border} p-6`}>
-
-            <button onClick={() => setSelectedSignal(null)}>← Back</button>
-
-            <h2 className="text-lg font-bold mt-2">Decision Intelligence Brief</h2>
-
-            <div className="mt-3 text-sm font-semibold">
-              {selectedSignal.title}
-            </div>
-
-            <div className={`text-xs ${t.sub}`}>
-              Source: {selectedSignal.source}
-            </div>
-
-            <div className="mt-4">
-              <div className="text-xs text-gray-400">Why this matters</div>
-              <div className="text-sm">{mapping.impact}</div>
-            </div>
-
-            <div className="mt-4 text-red-400 font-semibold">
-              Impact: {pct.toFixed(1)}% (~SAR {(sar/1e9).toFixed(1)}B)
-            </div>
-
-          </div>
-        )
-
-      })()}
-
-      <footer className="px-6 py-2 border-t text-xs">
-        Global Intelligence Platform | 2026
-        <CurrencyToggle currency={footerCurrency} onToggle={setFooterCurrency} />
-        <ConnectionStatus />
-      </footer>
-    </div>
-  )
+/* Ma'aden Light Executive Theme - Premium Corporate */
+.light {
+  --background: #FAFAF8;
+  --foreground: #1A1A18;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A18;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A18;
+  --primary: #7A6B3A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F5F3EE;
+  --secondary-foreground: #5A4D2A;
+  --muted: #EDEAE3;
+  --muted-foreground: #5A5548;
+  --accent: #7A6B3A;
+  --accent-foreground: #FFFFFF;
+  --destructive: #B83C3C;
+  --destructive-foreground: #FFFFFF;
+  --border: #D8D4C8;
+  --input: #F5F3EE;
+  --ring: #7A6B3A;
+  --chart-1: #7A6B3A;
+  --chart-2: #B83C3C;
+  --chart-3: #2D7A6A;
+  --chart-4: #C4842D;
+  --chart-5: #4A5F98;
+  --sidebar: #F5F3EE;
+  --sidebar-foreground: #1A1A18;
+  --sidebar-primary: #7A6B3A;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EDEAE3;
+  --sidebar-accent-foreground: #7A6B3A;
+  --sidebar-border: #D8D4C8;
+  --sidebar-ring: #7A6B3A;
+  --gold: #7A6B3A;
+  --gold-dim: #5A4D2A;
+  --gold-glow: #9A8B5A;
+  --surface-elevated: #FFFFFF;
+  --risk-critical: #C43C3C;
+  --risk-high: #C4842D;
+  --risk-medium: #7A6B3A;
+  --risk-low: #2D7A6A;
+  --risk-minimal: #1D5A4A;
 }
 
-/* 🔥 HEATMAP TAB */
-function HeatmapTab({ t, onSelectRisk, news, onSelectSignal }: any) {
-  return (
-    <div className="flex flex-col flex-1">
+@theme inline {
+  --font-sans: 'Inter', 'Geist', 'Geist Fallback', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Geist Mono', 'Geist Mono Fallback', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-gold: var(--gold);
+  --color-gold-dim: var(--gold-dim);
+  --color-gold-glow: var(--gold-glow);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-risk-critical: var(--risk-critical);
+  --color-risk-high: var(--risk-high);
+  --color-risk-medium: var(--risk-medium);
+  --color-risk-low: var(--risk-low);
+  --color-risk-minimal: var(--risk-minimal);
+}
 
-      <StatsBar onSelectRisk={onSelectRisk} />
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
 
-      <div className="flex flex-1 gap-4">
+/* Glow effects */
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 4px var(--gold-dim), 0 0 8px transparent; }
+  50% { box-shadow: 0 0 8px var(--gold), 0 0 16px var(--gold-dim); }
+}
 
-        <div className={`flex-[2] border ${t.border} ${t.card} p-4 overflow-x-auto`}>
-          <div className="min-w-[900px]">
-            <RiskHeatmap onSelectRisk={onSelectRisk} />
-          </div>
-        </div>
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
 
-        <div className="flex-[1] flex flex-col gap-4 overflow-y-auto">
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-          <div className={`border ${t.border} ${t.card} p-4`}>
-            <GlobalBenchmarks />
-          </div>
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
 
-          <div className={`border ${t.border} ${t.card} p-4`}>
-            <MarketIntelligence />
-          </div>
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
-          <div className={`border ${t.border} ${t.card} p-4`}>
-            <RiskSignals news={news} onSelect={onSelectSignal} />
-          </div>
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 6px var(--risk-critical), 0 0 12px transparent; }
+  50% { box-shadow: 0 0 12px var(--risk-critical), 0 0 24px color-mix(in srgb, var(--risk-critical) 30%, transparent); }
+}
 
-        </div>
+.animate-pulse-gold {
+  animation: pulse-gold 3s ease-in-out infinite;
+}
 
-      </div>
+.animate-pulse-glow-critical {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
 
-      <TopAlerts news={news} onSelect={onSelectSignal} />
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
 
-    </div>
-  )
+.animate-slide-in-right {
+  animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in-overlay {
+  animation: fadeInOverlay 0.25s ease-out forwards;
+}
+
+/* GPU-accelerated transitions for tablet/iPad smoothness */
+@media (hover: none) and (pointer: coarse) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .animate-fade-in-up,
+  .animate-slide-in-right {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* Touch-optimized scrolling */
+.overflow-y-auto,
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-dim);
+}
+
+/* Light mode enhancements */
+.light {
+  /* Better card elevation */
+  & .rounded-lg {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Crisp borders */
+  & .border-border\/50 {
+    border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  }
+  
+  /* Better card backgrounds */
+  & .bg-card\/50 {
+    background-color: color-mix(in srgb, var(--card) 95%, var(--background));
+  }
+  
+  & .bg-card\/30 {
+    background-color: color-mix(in srgb, var(--card) 85%, var(--background));
+  }
+  
+  /* Improved secondary backgrounds */
+  & .bg-secondary\/60,
+  & .bg-secondary\/40,
+  & .bg-secondary\/30 {
+    background-color: var(--secondary);
+  }
+  
+  /* Better text contrast for muted */
+  & .text-muted-foreground\/50,
+  & .text-muted-foreground\/40 {
+    color: color-mix(in srgb, var(--muted-foreground) 75%, transparent);
+  }
+  
+  /* Header and footer styling */
+  & header,
+  & footer {
+    background-color: var(--card);
+    border-color: var(--border);
+  }
+  
+  /* Input fields */
+  & input,
+  & textarea {
+    background-color: var(--card);
+    border-color: var(--border);
+  }
+  
+  /* Better table row hover */
+  & tr:hover {
+    background-color: color-mix(in srgb, var(--primary) 5%, var(--background));
+  }
+}
+/* ========================= */
+/* 🔥 NEW THEMES (ADD ONLY) */
+/* ========================= */
+
+/* EXECUTIVE THEME */
+.executive {
+  --background: #0b1d2a;
+  --foreground: #dbeafe;
+  --card: #112e42;
+  --border: rgba(96,165,250,0.25);
+  --muted-foreground: #93c5fd;
+  --primary: #60a5fa;
+  --gold: #60a5fa;
+  --surface-elevated: #163a52;
+}
+
+/* BLOOMBERG THEME */
+.bloomberg {
+  --background: #000000;
+  --foreground: #fde68a;
+  --card: #0f0f0f;
+  --border: rgba(234,179,8,0.25);
+  --muted-foreground: #facc15;
+  --primary: #facc15;
+  --gold: #facc15;
+  --surface-elevated: #1a1a1a;
+}
+
+/* SMOOTH TRANSITION */
+body {
+  transition: background 0.3s ease, color 0.3s ease;
 }

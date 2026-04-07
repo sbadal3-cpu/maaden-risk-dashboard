@@ -291,3 +291,35 @@
     background-color: color-mix(in srgb, var(--primary) 5%, var(--background));
   }
 }
+/* ========================= */
+/* 🔥 NEW THEMES (ADD ONLY) */
+/* ========================= */
+
+/* EXECUTIVE THEME */
+.executive {
+  --background: #0b1d2a;
+  --foreground: #dbeafe;
+  --card: #112e42;
+  --border: rgba(96,165,250,0.25);
+  --muted-foreground: #93c5fd;
+  --primary: #60a5fa;
+  --gold: #60a5fa;
+  --surface-elevated: #163a52;
+}
+
+/* BLOOMBERG THEME */
+.bloomberg {
+  --background: #000000;
+  --foreground: #fde68a;
+  --card: #0f0f0f;
+  --border: rgba(234,179,8,0.25);
+  --muted-foreground: #facc15;
+  --primary: #facc15;
+  --gold: #facc15;
+  --surface-elevated: #1a1a1a;
+}
+
+/* SMOOTH TRANSITION */
+body {
+  transition: background 0.3s ease, color 0.3s ease;
+}
