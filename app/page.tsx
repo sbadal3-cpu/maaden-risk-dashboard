@@ -1,325 +1,525 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+"use client"
 
-@custom-variant dark (&:is(.dark *));
+import { useState, useEffect, useCallback } from "react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Grid3X3, Database, Sparkles, Palette, Globe2, AlertTriangle, TrendingUp } from "lucide-react"
 
-/* Ma'aden Dark Command Center Theme (Default) */
-:root,
-.dark {
-  --background: #1C1C1B;
-  --foreground: #E8E2D0;
-  --card: #242422;
-  --card-foreground: #E8E2D0;
-  --popover: #1C1C1B;
-  --popover-foreground: #E8E2D0;
-  --primary: #B4A56F;
-  --primary-foreground: #1C1C1B;
-  --secondary: #2A2A28;
-  --secondary-foreground: #B4A56F;
-  --muted: #2A2A28;
-  --muted-foreground: #8A8577;
-  --accent: #B4A56F;
-  --accent-foreground: #1C1C1B;
-  --destructive: #C45C5C;
-  --destructive-foreground: #FDE8E8;
-  --border: #3A3A37;
-  --input: #2A2A28;
-  --ring: #B4A56F;
-  --chart-1: #B4A56F;
-  --chart-2: #C45C5C;
-  --chart-3: #5CB4A5;
-  --chart-4: #E8A54F;
-  --chart-5: #7B93DB;
-  --radius: 0.5rem;
-  --sidebar: #1A1A19;
-  --sidebar-foreground: #E8E2D0;
-  --sidebar-primary: #B4A56F;
-  --sidebar-primary-foreground: #1C1C1B;
-  --sidebar-accent: #2A2A28;
-  --sidebar-accent-foreground: #B4A56F;
-  --sidebar-border: #3A3A37;
-  --sidebar-ring: #B4A56F;
-  --gold: #B4A56F;
-  --gold-dim: #8A7D52;
-  --gold-glow: #C8B87A;
-  --surface-elevated: #2E2E2C;
-  --risk-critical: #E05252;
-  --risk-high: #E8A54F;
-  --risk-medium: #B4A56F;
-  --risk-low: #5CB4A5;
-  --risk-minimal: #4A7A6E;
+import { DashboardHeader } from "@/components/dashboard/header"
+import { StatsBar } from "@/components/dashboard/stats-bar"
+import { RiskHeatmap } from "@/components/dashboard/risk-heatmap"
+import { GlobalBenchmarks } from "@/components/dashboard/global-benchmarks"
+import { AIAdvisor } from "@/components/dashboard/ai-advisor"
+import { RiskTable } from "@/components/dashboard/risk-table"
+import { RiskDetailView } from "@/components/dashboard/risk-detail-view"
+import { CurrencyToggle, type Currency } from "@/components/dashboard/currency-toggle"
+import { LiveTicker } from "@/components/dashboard/live-ticker"
+import { MarketIntelligence } from "@/components/dashboard/market-intelligence"
+import { ConnectionStatus } from "@/components/dashboard/connection-status"
+import { ExportToast } from "@/components/dashboard/export-toast"
+
+import TopAlerts from "@/components/dashboard/top-alerts"
+import RiskSignals from "@/components/dashboard/risk-signals"
+
+import { mapToMaaden } from "@/lib/intelligence"
+import { calculateImpact } from "@/lib/impact-engine"
+
+type Tab = "heatmap" | "universe" | "advisor"
+type ThemeName = "dark" | "light" | "executive" | "bloomberg"
+
+type DashboardSignal = {
+  title?: string
+  source?: string
+  url?: string
+  category?: string
+  severity?: string
+  confidence?: number
+  publishedAt?: string
+  impact?: string
+  score?: number
+  business?: string
+  type?: "news" | "benchmark" | "market" | "synthetic"
 }
 
-/* Ma'aden Light Executive Theme - Premium Corporate */
-.light {
-  --background: #FAFAF8;
-  --foreground: #1A1A18;
-  --card: #FFFFFF;
-  --card-foreground: #1A1A18;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1A18;
-  --primary: #7A6B3A;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F5F3EE;
-  --secondary-foreground: #5A4D2A;
-  --muted: #EDEAE3;
-  --muted-foreground: #5A5548;
-  --accent: #7A6B3A;
-  --accent-foreground: #FFFFFF;
-  --destructive: #B83C3C;
-  --destructive-foreground: #FFFFFF;
-  --border: #D8D4C8;
-  --input: #F5F3EE;
-  --ring: #7A6B3A;
-  --chart-1: #7A6B3A;
-  --chart-2: #B83C3C;
-  --chart-3: #2D7A6A;
-  --chart-4: #C4842D;
-  --chart-5: #4A5F98;
-  --sidebar: #F5F3EE;
-  --sidebar-foreground: #1A1A18;
-  --sidebar-primary: #7A6B3A;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #EDEAE3;
-  --sidebar-accent-foreground: #7A6B3A;
-  --sidebar-border: #D8D4C8;
-  --sidebar-ring: #7A6B3A;
-  --gold: #7A6B3A;
-  --gold-dim: #5A4D2A;
-  --gold-glow: #9A8B5A;
-  --surface-elevated: #FFFFFF;
-  --risk-critical: #C43C3C;
-  --risk-high: #C4842D;
-  --risk-medium: #7A6B3A;
-  --risk-low: #2D7A6A;
-  --risk-minimal: #1D5A4A;
+const tabs: { key: Tab; label: string; icon: any }[] = [
+  { key: "heatmap", label: "Executive Heatmap", icon: Grid3X3 },
+  { key: "universe", label: "Risk Universe", icon: Database },
+  { key: "advisor", label: "AI Advisor", icon: Sparkles },
+]
+
+const themeOptions: { key: ThemeName; label: string }[] = [
+  { key: "dark", label: "Dark" },
+  { key: "light", label: "Light" },
+  { key: "executive", label: "Executive" },
+  { key: "bloomberg", label: "Bloomberg" },
+]
+
+function formatSar(value: number) {
+  const abs = Math.abs(value)
+  if (abs >= 1_000_000_000) return `SAR ${(value / 1_000_000_000).toFixed(1)}B`
+  if (abs >= 1_000_000) return `SAR ${(value / 1_000_000).toFixed(1)}M`
+  return `SAR ${value.toFixed(0)}`
 }
 
-@theme inline {
-  --font-sans: 'Inter', 'Geist', 'Geist Fallback', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Geist Mono', 'Geist Mono Fallback', monospace;
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-gold: var(--gold);
-  --color-gold-dim: var(--gold-dim);
-  --color-gold-glow: var(--gold-glow);
-  --color-surface-elevated: var(--surface-elevated);
-  --color-risk-critical: var(--risk-critical);
-  --color-risk-high: var(--risk-high);
-  --color-risk-medium: var(--risk-medium);
-  --color-risk-low: var(--risk-low);
-  --color-risk-minimal: var(--risk-minimal);
+function getSeverityFromPct(pct: number) {
+  const x = Math.abs(pct)
+  if (x >= 8) return "Critical"
+  if (x >= 4) return "High"
+  if (x >= 2) return "Moderate"
+  return "Low"
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+function getSeverityClasses(severity?: string) {
+  switch ((severity || "").toLowerCase()) {
+    case "critical":
+      return "text-risk-critical border-risk-critical/30 bg-risk-critical/10"
+    case "high":
+      return "text-risk-high border-risk-high/30 bg-risk-high/10"
+    case "moderate":
+    case "medium":
+      return "text-risk-medium border-risk-medium/30 bg-risk-medium/10"
+    default:
+      return "text-risk-low border-risk-low/30 bg-risk-low/10"
+  }
 }
 
-/* Glow effects */
-@keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 4px var(--gold-dim), 0 0 8px transparent; }
-  50% { box-shadow: 0 0 8px var(--gold), 0 0 16px var(--gold-dim); }
+function getScenarioNarrative(severity: string, pct: number) {
+  if (severity === "Critical") {
+    return {
+      headline: "Executive attention required immediately.",
+      actions: [
+        "Activate mitigation plan and reprioritize capital allocation.",
+        "Escalate to CFO / COO for hedging and procurement response.",
+        "Review supplier resilience and contingency routing within 24–48 hours.",
+      ],
+      outlook: `In a severe case, EBITDA sensitivity may worsen by roughly ${Math.abs(pct).toFixed(1)}%.`,
+    }
+  }
+
+  if (severity === "High") {
+    return {
+      headline: "Management action recommended this cycle.",
+      actions: [
+        "Increase monitoring cadence and hedge key exposures.",
+        "Reassess supplier concentration and contract flexibility.",
+        "Prepare scenario response pack for monthly leadership review.",
+      ],
+      outlook: `Current trajectory indicates material pressure, with downside sensitivity around ${Math.abs(pct).toFixed(1)}%.`,
+    }
+  }
+
+  if (severity === "Moderate") {
+    return {
+      headline: "Monitor closely and keep mitigation options ready.",
+      actions: [
+        "Track leading indicators weekly.",
+        "Validate procurement and logistics assumptions.",
+        "Keep treasury and operations aligned on thresholds.",
+      ],
+      outlook: `Current scenario remains manageable but could intensify if external conditions deteriorate.`,
+    }
+  }
+
+  return {
+    headline: "No immediate management action required.",
+    actions: [
+      "Continue routine monitoring.",
+      "Keep watchlist active for escalation triggers.",
+      "Maintain source validation and signal quality checks.",
+    ],
+    outlook: `Current impact remains limited under base assumptions.`,
+  }
 }
 
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
+export default function DashboardPage() {
+  const [theme, setTheme] = useState<ThemeName>("dark")
+  const [activeTab, setActiveTab] = useState<Tab>("heatmap")
+  const [selectedRisk, setSelectedRisk] = useState<any>(null)
+  const [footerCurrency, setFooterCurrency] = useState<Currency>("SAR")
+
+  const [news, setNews] = useState<DashboardSignal[]>([])
+  const [selectedSignal, setSelectedSignal] = useState<DashboardSignal | null>(null)
+
+  const [scenarioLevel, setScenarioLevel] = useState(1)
+  const [rateShock, setRateShock] = useState(false)
+  const [costShock, setCostShock] = useState(false)
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.classList.remove("dark", "light", "executive", "bloomberg")
+    root.classList.add(theme)
+  }, [theme])
+
+  useEffect(() => {
+    fetch("/api/news")
+      .then((res) => res.json())
+      .then((data) => setNews(Array.isArray(data) ? data : []))
+      .catch(() => setNews([]))
+  }, [])
+
+  const handleSelectRisk = useCallback((risk: any) => {
+    setSelectedRisk(risk)
+  }, [])
+
+  const handleBack = useCallback(() => {
+    setSelectedRisk(null)
+  }, [])
+
+  const openBenchmarkPanel = () => {
+    setSelectedSignal({
+      type: "benchmark",
+      title: "Global Benchmark Intelligence",
+      source: "Internal benchmark engine",
+      category: "Strategic",
+      severity: "Moderate",
+      confidence: 82,
+      impact:
+        "Benchmark indicators suggest external macro and sector pressures should be monitored against Ma’aden’s cost base, export exposure, and project execution assumptions.",
+      url: "#",
+    })
+  }
+
+  const openMarketPanel = () => {
+    setSelectedSignal({
+      type: "market",
+      title: "Market Intelligence Summary",
+      source: "Internal market feed",
+      category: "Market",
+      severity: "Moderate",
+      confidence: 78,
+      impact:
+        "Market indicators imply potential variability in commodities, financing assumptions, and procurement costs. Management should compare this with current guidance and treasury assumptions.",
+      url: "#",
+    })
+  }
+
+  return (
+    <div className="flex flex-col h-screen bg-background text-foreground transition-colors duration-300">
+      <ExportToast />
+      <DashboardHeader />
+      <LiveTicker />
+
+      <div className="px-4 pt-2 flex items-center justify-between gap-3">
+        <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground flex items-center gap-2">
+          <Palette className="h-3.5 w-3.5" />
+          Client View Modes
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {themeOptions.map((option) => {
+            const active = theme === option.key
+            return (
+              <button
+                key={option.key}
+                onClick={() => setTheme(option.key)}
+                className={`px-3 py-1.5 rounded-md text-[11px] uppercase tracking-wide border transition-all ${
+                  active
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-secondary"
+                }`}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <nav className="flex items-center gap-1 px-4 pt-3 shrink-0">
+        {tabs.map((tab) => {
+          const Icon = tab.icon
+          const isActive = activeTab === tab.key
+
+          return (
+            <button
+              key={tab.key}
+              onClick={() => {
+                setActiveTab(tab.key)
+                setSelectedRisk(null)
+              }}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase transition-colors ${
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {tab.label}
+            </button>
+          )
+        })}
+      </nav>
+
+      <main className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {selectedRisk ? (
+            <RiskDetailView risk={selectedRisk} onBack={handleBack} />
+          ) : (
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="h-full p-4 flex flex-col gap-4 min-h-0"
+            >
+              {activeTab === "heatmap" && (
+                <HeatmapTab
+                  onSelectRisk={handleSelectRisk}
+                  selectedRisk={selectedRisk}
+                  news={news}
+                  onSelectSignal={setSelectedSignal}
+                  onOpenBenchmarks={openBenchmarkPanel}
+                  onOpenMarket={openMarketPanel}
+                />
+              )}
+
+              {activeTab === "universe" && (
+                <RiskTable onSelectRisk={handleSelectRisk} selectedRisk={selectedRisk} />
+              )}
+
+              {activeTab === "advisor" && <AIAdvisor />}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      {selectedSignal && (() => {
+        const mapping = mapToMaaden(selectedSignal)
+        const baseImpact = calculateImpact(selectedSignal)
+
+        let multiplier = scenarioLevel
+        if (rateShock) multiplier += 0.4
+        if (costShock) multiplier += 0.4
+
+        const revenueBase = 120_000_000_000
+        const basePct = baseImpact.base * multiplier
+        const moderatePct = baseImpact.moderate * multiplier
+        const severePct = baseImpact.severe * multiplier
+
+        const baseSar = (basePct / 100) * revenueBase
+        const moderateSar = (moderatePct / 100) * revenueBase
+        const severeSar = (severePct / 100) * revenueBase
+
+        const severity = selectedSignal.severity || getSeverityFromPct(severePct)
+        const severityClass = getSeverityClasses(severity)
+        const confidence = selectedSignal.confidence ?? 75
+        const story = getScenarioNarrative(severity, severePct)
+
+        return (
+          <div className="fixed right-0 top-0 h-full w-[460px] max-w-[95vw] bg-card border-l border-border p-6 z-50 overflow-y-auto animate-slide-in-right">
+            <button
+              onClick={() => setSelectedSignal(null)}
+              className="text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+            >
+              ← Back
+            </button>
+
+            <div className="mt-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold">Decision Intelligence Brief</h2>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Executive view of exposure, scenarios and recommended action
+                </p>
+              </div>
+
+              <div className={`text-[11px] px-2.5 py-1 rounded-full border ${severityClass}`}>
+                {severity}
+              </div>
+            </div>
+
+            <div className="mt-5 text-sm font-semibold leading-snug">
+              {selectedSignal.title}
+            </div>
+
+            <div className="mt-2 text-xs text-muted-foreground">
+              Source: {selectedSignal.source || "Verified intelligence feed"}
+              {selectedSignal.publishedAt ? ` • ${selectedSignal.publishedAt}` : ""}
+              {` • Confidence ${confidence}%`}
+            </div>
+
+            <div className="mt-5 rounded-lg border border-border bg-background/40 p-4">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                Why this matters to Ma’aden
+              </div>
+              <div className="text-sm leading-6">{mapping.impact}</div>
+              <div className="mt-3 text-xs text-muted-foreground">
+                Exposure mapping: {mapping.business} • {mapping.asset}
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-lg border border-border bg-background/40 p-4">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground mb-3">
+                <TrendingUp className="h-3.5 w-3.5" />
+                Scenario controls
+              </div>
+
+              <input
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={scenarioLevel}
+                onChange={(e) => setScenarioLevel(Number(e.target.value))}
+                className="w-full"
+              />
+
+              <div className="mt-2 text-xs text-muted-foreground">
+                Stress multiplier: {scenarioLevel.toFixed(1)}x
+              </div>
+
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => setRateShock((v) => !v)}
+                  className={`px-3 py-1.5 rounded-md border text-[11px] uppercase tracking-wide ${
+                    rateShock
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Rate shock
+                </button>
+                <button
+                  onClick={() => setCostShock((v) => !v)}
+                  className={`px-3 py-1.5 rounded-md border text-[11px] uppercase tracking-wide ${
+                    costShock
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Cost shock
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-lg border border-border bg-background/40 p-4">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground mb-3">
+                Estimated financial impact
+              </div>
+
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between gap-3">
+                  <span className="text-muted-foreground">Base case</span>
+                  <span className="font-medium">{basePct.toFixed(1)}% • {formatSar(baseSar)}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-muted-foreground">Stress case</span>
+                  <span className="font-medium">{moderatePct.toFixed(1)}% • {formatSar(moderateSar)}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-muted-foreground">Severe case</span>
+                  <span className="font-semibold text-risk-critical">
+                    {severePct.toFixed(1)}% • {formatSar(severeSar)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-lg border border-border bg-background/40 p-4">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground mb-3">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Executive storyline
+              </div>
+
+              <div className="text-sm font-medium">{story.headline}</div>
+              <div className="mt-2 text-sm text-muted-foreground leading-6">{story.outlook}</div>
+
+              <div className="mt-4 text-xs uppercase tracking-wide text-muted-foreground">
+                Recommended action
+              </div>
+
+              <ul className="mt-2 space-y-2 text-sm">
+                {story.actions.map((action, idx) => (
+                  <li key={idx} className="flex gap-2">
+                    <span className="text-primary">•</span>
+                    <span>{action}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-5 rounded-lg border border-border bg-background/40 p-4">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground mb-3">
+                <Globe2 className="h-3.5 w-3.5" />
+                Source and context
+              </div>
+
+              <div className="text-sm">
+                {selectedSignal.impact || "Signal analysis derived from the current intelligence feed and scenario engine."}
+              </div>
+
+              <div className="mt-4 flex gap-3">
+                {selectedSignal.url && selectedSignal.url !== "#" ? (
+                  <a
+                    href={selectedSignal.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-primary underline underline-offset-4"
+                  >
+                    Open original source
+                  </a>
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    Internal source summary
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      <footer className="px-6 py-2 border-t border-border text-xs flex items-center justify-between">
+        <span>Global Intelligence Platform | 2026</span>
+        <div className="flex items-center gap-3">
+          <CurrencyToggle currency={footerCurrency} onToggle={setFooterCurrency} />
+          <ConnectionStatus />
+        </div>
+      </footer>
+    </div>
+  )
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+function HeatmapTab({
+  onSelectRisk,
+  selectedRisk,
+  news,
+  onSelectSignal,
+  onOpenBenchmarks,
+  onOpenMarket,
+}: any) {
+  return (
+    <div className="flex flex-col flex-1 min-h-0">
+      <StatsBar onSelectRisk={onSelectRisk} />
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
+      <div className="flex flex-1 gap-4 min-h-0">
+        <div className="flex-[2] border border-border rounded-lg p-4 bg-card overflow-hidden flex flex-col">
+          <div className="overflow-x-auto overflow-y-hidden flex-1">
+            <div className="min-w-[920px] h-full">
+              <RiskHeatmap onSelectRisk={onSelectRisk} selectedRisk={selectedRisk} />
+            </div>
+          </div>
+        </div>
 
-@keyframes fadeInOverlay {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+        <div className="flex-[1] flex flex-col gap-4 overflow-y-auto pr-1">
+          <button
+            onClick={onOpenBenchmarks}
+            className="border border-border rounded-lg p-4 bg-card text-left hover:bg-secondary transition-colors"
+          >
+            <GlobalBenchmarks />
+          </button>
 
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 6px var(--risk-critical), 0 0 12px transparent; }
-  50% { box-shadow: 0 0 12px var(--risk-critical), 0 0 24px color-mix(in srgb, var(--risk-critical) 30%, transparent); }
-}
+          <button
+            onClick={onOpenMarket}
+            className="border border-border rounded-lg p-4 bg-card text-left hover:bg-secondary transition-colors"
+          >
+            <MarketIntelligence />
+          </button>
 
-.animate-pulse-gold {
-  animation: pulse-gold 3s ease-in-out infinite;
-}
+          <div className="border border-border rounded-lg p-4 bg-card">
+            <RiskSignals news={news} onSelect={onSelectSignal} />
+          </div>
+        </div>
+      </div>
 
-.animate-pulse-glow-critical {
-  animation: pulseGlow 2.5s ease-in-out infinite;
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.4s ease-out forwards;
-}
-
-.animate-slide-in-right {
-  animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-fade-in-overlay {
-  animation: fadeInOverlay 0.25s ease-out forwards;
-}
-
-/* GPU-accelerated transitions for tablet/iPad smoothness */
-@media (hover: none) and (pointer: coarse) {
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
-  .animate-fade-in-up,
-  .animate-slide-in-right {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-  }
-}
-
-/* Touch-optimized scrolling */
-.overflow-y-auto,
-.overflow-x-auto {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--background);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--gold-dim);
-}
-
-/* Light mode enhancements */
-.light {
-  /* Better card elevation */
-  & .rounded-lg {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05);
-  }
-  
-  /* Crisp borders */
-  & .border-border\/50 {
-    border-color: color-mix(in srgb, var(--border) 70%, transparent);
-  }
-  
-  /* Better card backgrounds */
-  & .bg-card\/50 {
-    background-color: color-mix(in srgb, var(--card) 95%, var(--background));
-  }
-  
-  & .bg-card\/30 {
-    background-color: color-mix(in srgb, var(--card) 85%, var(--background));
-  }
-  
-  /* Improved secondary backgrounds */
-  & .bg-secondary\/60,
-  & .bg-secondary\/40,
-  & .bg-secondary\/30 {
-    background-color: var(--secondary);
-  }
-  
-  /* Better text contrast for muted */
-  & .text-muted-foreground\/50,
-  & .text-muted-foreground\/40 {
-    color: color-mix(in srgb, var(--muted-foreground) 75%, transparent);
-  }
-  
-  /* Header and footer styling */
-  & header,
-  & footer {
-    background-color: var(--card);
-    border-color: var(--border);
-  }
-  
-  /* Input fields */
-  & input,
-  & textarea {
-    background-color: var(--card);
-    border-color: var(--border);
-  }
-  
-  /* Better table row hover */
-  & tr:hover {
-    background-color: color-mix(in srgb, var(--primary) 5%, var(--background));
-  }
-}
-/* ========================= */
-/* 🔥 NEW THEMES (ADD ONLY) */
-/* ========================= */
-
-/* EXECUTIVE THEME */
-.executive {
-  --background: #0b1d2a;
-  --foreground: #dbeafe;
-  --card: #112e42;
-  --border: rgba(96,165,250,0.25);
-  --muted-foreground: #93c5fd;
-  --primary: #60a5fa;
-  --gold: #60a5fa;
-  --surface-elevated: #163a52;
-}
-
-/* BLOOMBERG THEME */
-.bloomberg {
-  --background: #000000;
-  --foreground: #fde68a;
-  --card: #0f0f0f;
-  --border: rgba(234,179,8,0.25);
-  --muted-foreground: #facc15;
-  --primary: #facc15;
-  --gold: #facc15;
-  --surface-elevated: #1a1a1a;
-}
-
-/* SMOOTH TRANSITION */
-body {
-  transition: background 0.3s ease, color 0.3s ease;
+      <div className="mt-4 max-h-[220px] overflow-y-auto">
+        <TopAlerts news={news} onSelect={onSelectSignal} />
+      </div>
+    </div>
+  )
 }
