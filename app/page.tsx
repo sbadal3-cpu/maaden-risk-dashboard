@@ -26,13 +26,48 @@ import { Grid3X3, Database, Sparkles } from "lucide-react"
 
 type Tab = "heatmap" | "universe" | "advisor"
 
+/* 🔥 THEMES */
+const themes = {
+  dark: {
+    bg: "bg-background",
+    card: "bg-[#111]",
+    border: "border-white/10",
+    text: "text-white",
+    sub: "text-gray-400",
+  },
+  executive: {
+    bg: "bg-[#0b1d2a]",
+    card: "bg-[#112e42]",
+    border: "border-blue-400/20",
+    text: "text-blue-100",
+    sub: "text-blue-300",
+  },
+  light: {
+    bg: "bg-white",
+    card: "bg-gray-100",
+    border: "border-gray-300",
+    text: "text-black",
+    sub: "text-gray-600",
+  },
+  bloomberg: {
+    bg: "bg-[#0a0a0a]",
+    card: "bg-[#111111]",
+    border: "border-yellow-400/20",
+    text: "text-yellow-300",
+    sub: "text-yellow-500",
+  },
+}
+
 const tabs = [
   { key: "heatmap", label: "Executive Heatmap", icon: Grid3X3 },
-  { key: "universe", label: "The Risk Universe", icon: Database },
+  { key: "universe", label: "Risk Universe", icon: Database },
   { key: "advisor", label: "AI Advisor", icon: Sparkles },
 ]
 
 export default function DashboardPage() {
+
+  const [theme, setTheme] = useState("dark")
+  const t = themes[theme as keyof typeof themes]
 
   const [activeTab, setActiveTab] = useState<Tab>("heatmap")
   const [selectedRisk, setSelectedRisk] = useState<any>(null)
@@ -41,7 +76,6 @@ export default function DashboardPage() {
   const [news, setNews] = useState<any[]>([])
   const [selectedSignal, setSelectedSignal] = useState<any>(null)
 
-  // 🔥 SCENARIO CONTROLS
   const [scenarioLevel, setScenarioLevel] = useState(1)
   const [rateShock, setRateShock] = useState(false)
   const [costShock, setCostShock] = useState(false)
@@ -61,11 +95,25 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="flex flex-col h-screen bg-background text-white">
+    <div className={`flex flex-col h-screen ${t.bg} ${t.text}`}>
 
       <ExportToast />
       <DashboardHeader />
       <LiveTicker />
+
+      {/* 🔥 THEME SWITCHER */}
+      <div className="px-4 pt-2 flex justify-end">
+        <select
+          value={theme}
+          onChange={(e) => setTheme(e.target.value)}
+          className="text-xs border px-2 py-1 bg-black text-white"
+        >
+          <option value="dark">Dark</option>
+          <option value="executive">Executive</option>
+          <option value="light">Light</option>
+          <option value="bloomberg">Bloomberg</option>
+        </select>
+      </div>
 
       {/* NAV */}
       <nav className="flex items-center gap-1 px-4 pt-3">
@@ -80,9 +128,9 @@ export default function DashboardPage() {
                 setActiveTab(tab.key)
                 setSelectedRisk(null)
               }}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase"
+              className="flex items-center gap-2 px-4 py-2 text-xs uppercase"
               style={{
-                color: isActive ? "var(--primary)" : "var(--muted-foreground)",
+                color: isActive ? "#22c55e" : "#888",
               }}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -97,27 +145,19 @@ export default function DashboardPage() {
           {selectedRisk ? (
             <RiskDetailView risk={selectedRisk} onBack={handleBack} />
           ) : (
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="h-full p-4 flex flex-col gap-4 min-h-0"
-            >
+            <motion.div className="h-full p-4 flex flex-col gap-4">
 
               {activeTab === "heatmap" && (
                 <HeatmapTab
+                  t={t}
                   onSelectRisk={handleSelectRisk}
-                  selectedRisk={selectedRisk}
                   news={news}
                   onSelectSignal={setSelectedSignal}
                 />
               )}
 
               {activeTab === "universe" && (
-                <RiskTable
-                  onSelectRisk={handleSelectRisk}
-                  selectedRisk={selectedRisk}
-                />
+                <RiskTable onSelectRisk={handleSelectRisk} />
               )}
 
               {activeTab === "advisor" && <AIAdvisor />}
@@ -127,120 +167,50 @@ export default function DashboardPage() {
         </AnimatePresence>
       </main>
 
-      {/* 🔥 FINAL DECISION PANEL */}
+      {/* 🔥 DECISION PANEL */}
       {selectedSignal && (() => {
 
         const mapping = mapToMaaden(selectedSignal)
         const baseImpact = calculateImpact(selectedSignal)
 
-        // 🔥 FINANCIAL MODEL
-        const revenueBase = 120_000_000_000 // SAR baseline
-
         let multiplier = scenarioLevel
         if (rateShock) multiplier += 0.4
         if (costShock) multiplier += 0.4
 
-        const pctImpact = {
-          base: baseImpact.base * multiplier,
-          moderate: baseImpact.moderate * multiplier,
-          severe: baseImpact.severe * multiplier,
-        }
-
-        const sarImpact = {
-          base: (pctImpact.base / 100) * revenueBase,
-          moderate: (pctImpact.moderate / 100) * revenueBase,
-          severe: (pctImpact.severe / 100) * revenueBase,
-        }
-
-        const severity =
-          Math.abs(pctImpact.severe) > 8 ? "Critical" :
-          Math.abs(pctImpact.severe) > 4 ? "High" :
-          "Moderate"
+        const pct = baseImpact.severe * multiplier
+        const sar = (pct / 100) * 120_000_000_000
 
         return (
-          <div className="fixed right-0 top-0 h-full w-[450px] bg-[#111] border-l border-white/10 p-6 z-50 overflow-y-auto">
+          <div className={`fixed right-0 top-0 h-full w-[450px] ${t.card} border-l ${t.border} p-6`}>
 
-            <button onClick={() => setSelectedSignal(null)} className="mb-4 text-sm text-gray-400">
-              ← Back
-            </button>
+            <button onClick={() => setSelectedSignal(null)}>← Back</button>
 
-            <h2 className="text-lg font-bold mb-4">Decision Intelligence</h2>
+            <h2 className="text-lg font-bold mt-2">Decision Intelligence Brief</h2>
 
-            <div className="text-sm font-semibold mb-2">{selectedSignal.title}</div>
-
-            <div className="text-xs text-gray-400 mb-4">
-              Source: {selectedSignal.source} | {severity}
+            <div className="mt-3 text-sm font-semibold">
+              {selectedSignal.title}
             </div>
 
-            {/* SCENARIO */}
-            <div className="mb-4 border border-white/10 p-3 rounded bg-black/30">
-              <div className="text-xs text-gray-400 mb-2">Scenario Controls</div>
-
-              <input
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={scenarioLevel}
-                onChange={(e) => setScenarioLevel(Number(e.target.value))}
-                className="w-full"
-              />
-
-              <div className="text-xs mt-2">Stress: {scenarioLevel.toFixed(1)}x</div>
-
-              <div className="flex gap-2 mt-2 text-xs">
-                <button onClick={() => setRateShock(!rateShock)} className="px-2 py-1 border rounded">
-                  Interest Shock
-                </button>
-                <button onClick={() => setCostShock(!costShock)} className="px-2 py-1 border rounded">
-                  Cost Shock
-                </button>
-              </div>
+            <div className={`text-xs ${t.sub}`}>
+              Source: {selectedSignal.source}
             </div>
 
-            {/* MAADEN */}
-            <div className="mb-4 border border-white/10 p-3 rounded bg-black/30">
-              <div className="text-xs text-gray-400 mb-1">Ma’aden Exposure</div>
-              <div className="text-sm">{mapping.business} | {mapping.asset}</div>
-              <div className="text-sm text-red-400">{mapping.impact}</div>
+            <div className="mt-4">
+              <div className="text-xs text-gray-400">Why this matters</div>
+              <div className="text-sm">{mapping.impact}</div>
             </div>
 
-            {/* 🔥 FINANCIAL IMPACT */}
-            <div className="mb-4 border border-white/10 p-3 rounded bg-black/30">
-              <div className="text-xs text-gray-400 mb-2">Financial Impact (Estimated)</div>
-
-              <div className="text-sm text-red-400">
-                Base: {pctImpact.base.toFixed(1)}% (~SAR {(sarImpact.base / 1e9).toFixed(1)}B)
-              </div>
-
-              <div className="text-sm text-orange-400">
-                Moderate: {pctImpact.moderate.toFixed(1)}% (~SAR {(sarImpact.moderate / 1e9).toFixed(1)}B)
-              </div>
-
-              <div className="text-sm text-red-500 font-bold">
-                Severe: {pctImpact.severe.toFixed(1)}% (~SAR {(sarImpact.severe / 1e9).toFixed(1)}B)
-              </div>
+            <div className="mt-4 text-red-400 font-semibold">
+              Impact: {pct.toFixed(1)}% (~SAR {(sar/1e9).toFixed(1)}B)
             </div>
-
-            {/* ACTION */}
-            <div className="mb-4">
-              <div className="text-sm font-bold text-green-400 mb-2">Recommended Action</div>
-              {severity === "Critical" && <div>Immediate mitigation required.</div>}
-              {severity === "High" && <div>Hedge exposure and monitor closely.</div>}
-              {severity === "Moderate" && <div>Track trend.</div>}
-            </div>
-
-            <a href={selectedSignal.url} target="_blank" className="text-blue-400 underline">
-              View Source →
-            </a>
 
           </div>
         )
 
       })()}
 
-      <footer className="flex items-center justify-between px-6 py-2 border-t text-xs">
-        Global Risk Intelligence Dashboard | 2026
+      <footer className="px-6 py-2 border-t text-xs">
+        Global Intelligence Platform | 2026
         <CurrencyToggle currency={footerCurrency} onToggle={setFooterCurrency} />
         <ConnectionStatus />
       </footer>
@@ -248,38 +218,32 @@ export default function DashboardPage() {
   )
 }
 
-/* 🔥 HEATMAP TAB FIXED */
-function HeatmapTab({ onSelectRisk, selectedRisk, news, onSelectSignal }: any) {
+/* 🔥 HEATMAP TAB */
+function HeatmapTab({ t, onSelectRisk, news, onSelectSignal }: any) {
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col flex-1">
 
       <StatsBar onSelectRisk={onSelectRisk} />
 
-      <div className="flex flex-1 gap-4 min-h-0">
+      <div className="flex flex-1 gap-4">
 
-        {/* 🔥 HEATMAP FIX */}
-        <div className="flex-[2] border border-white/10 rounded p-4 bg-[#111] flex flex-col overflow-hidden">
-
-          <div className="overflow-x-auto">
-            <div className="min-w-[900px]">
-              <RiskHeatmap onSelectRisk={onSelectRisk} selectedRisk={selectedRisk} />
-            </div>
+        <div className={`flex-[2] border ${t.border} ${t.card} p-4 overflow-x-auto`}>
+          <div className="min-w-[900px]">
+            <RiskHeatmap onSelectRisk={onSelectRisk} />
           </div>
-
         </div>
 
-        {/* SIDE PANEL */}
-        <div className="flex-[1] flex flex-col gap-4 overflow-y-auto pr-2">
+        <div className="flex-[1] flex flex-col gap-4 overflow-y-auto">
 
-          <div className="border border-white/10 rounded p-4 bg-[#111]">
+          <div className={`border ${t.border} ${t.card} p-4`}>
             <GlobalBenchmarks />
           </div>
 
-          <div className="border border-white/10 rounded p-4 bg-[#111]">
+          <div className={`border ${t.border} ${t.card} p-4`}>
             <MarketIntelligence />
           </div>
 
-          <div className="border border-white/10 rounded p-4 bg-[#111]">
+          <div className={`border ${t.border} ${t.card} p-4`}>
             <RiskSignals news={news} onSelect={onSelectSignal} />
           </div>
 
@@ -287,9 +251,7 @@ function HeatmapTab({ onSelectRisk, selectedRisk, news, onSelectSignal }: any) {
 
       </div>
 
-      <div className="mt-4 max-h-[220px] overflow-y-auto">
-        <TopAlerts news={news} onSelect={onSelectSignal} />
-      </div>
+      <TopAlerts news={news} onSelect={onSelectSignal} />
 
     </div>
   )
