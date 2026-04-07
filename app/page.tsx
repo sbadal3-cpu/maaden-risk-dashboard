@@ -193,7 +193,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="flex flex-col h-screen bg-background text-foreground transition-colors duration-300 overflow-hidden">
       <ExportToast />
       <DashboardHeader />
       <LiveTicker />
@@ -256,7 +256,7 @@ export default function DashboardPage() {
               key={activeTab}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="h-full p-4 flex flex-col gap-4 min-h-0"
+              className="h-full p-5 flex flex-col gap-5 min-h-0 max-w-[1600px] mx-auto w-full"
             >
               {activeTab === "heatmap" && (
                 <HeatmapTab
@@ -490,7 +490,7 @@ function HeatmapTab({
       <div className="flex flex-1 gap-4 min-h-0">
         <div className="flex-[2] border border-border rounded-lg p-4 bg-card overflow-hidden flex flex-col">
           <div className="overflow-x-auto overflow-y-hidden flex-1">
-            <div className="min-w-[920px] h-full">
+            <div className="min-w-[1100px] h-full">
               <RiskHeatmap onSelectRisk={onSelectRisk} selectedRisk={selectedRisk} />
             </div>
           </div>

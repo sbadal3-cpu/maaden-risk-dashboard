@@ -323,3 +323,72 @@
 body {
   transition: background 0.3s ease, color 0.3s ease;
 }
+/* ========================= */
+/* CXO VISUAL LAYER (FINAL) */
+/* ========================= */
+
+/* DEPTH BACKGROUND */
+body {
+  background:
+    radial-gradient(circle at 15% 10%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 40%),
+    radial-gradient(circle at 85% 90%, color-mix(in srgb, var(--risk-low) 8%, transparent), transparent 40%),
+    var(--background);
+}
+
+/* CARD UPGRADE (auto-applies to your UI) */
+.bg-card {
+  background: color-mix(in srgb, var(--card) 88%, transparent) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* ALL YOUR PANELS */
+.rounded-lg {
+  border-radius: 14px !important;
+
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.02),
+    0 10px 30px rgba(0,0,0,0.35);
+}
+
+/* HOVER = EXECUTIVE FEEL */
+.rounded-lg:hover {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--gold) 25%, transparent),
+    0 18px 50px rgba(0,0,0,0.55);
+}
+
+/* BORDERS REFINED */
+.border-border {
+  border-color: color-mix(in srgb, var(--border) 70%, transparent) !important;
+}
+
+/* HEATMAP FIX (CRITICAL) */
+.min-w-\[920px\] {
+  transform: scale(0.98);
+  transform-origin: top left;
+}
+
+/* KPI BAR IMPROVEMENT */
+[class*="StatsBar"] {
+  backdrop-filter: blur(6px);
+}
+
+/* SIDEBAR STACK FIX */
+.flex-\[1\] > * {
+  transition: all 0.2s ease;
+}
+
+.flex-\[1\] > *:hover {
+  transform: translateX(4px);
+}
+
+/* ALERTS / SIGNALS */
+.max-h-\[220px\] {
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+}
+
+/* SCROLL POLISH */
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--gold-dim) 60%, transparent);
+}
