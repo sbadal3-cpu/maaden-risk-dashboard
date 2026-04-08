@@ -48,6 +48,14 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
   const srcColor = getSourceColor(risk.source)
   const regionInfo = getRegionInfo(risk.region)
   const isInternational = risk.region !== "ksa"
+  const riskScore = risk.likelihood * risk.impact
+  const executiveHeadline = isOpportunity
+    ? "Strategic opportunity requiring disciplined prioritization."
+    : riskLevel === "Critical"
+      ? "Immediate executive visibility and active mitigation required."
+      : riskLevel === "High"
+        ? "Material enterprise exposure requiring close management attention."
+        : "Monitorable exposure with controls and mitigation already in motion."
 
   return (
     <motion.div
@@ -58,7 +66,7 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
       className="flex flex-col h-full overflow-hidden"
     >
       {/* Breadcrumb bar */}
-      <div className="flex items-center gap-2 p-4 border-b border-border/50 bg-card/30 shrink-0">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border/50 bg-card/30 px-4 py-4">
         <button
           onClick={onBack}
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-mono uppercase tracking-wider text-primary hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-all"
@@ -93,17 +101,17 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
       </div>
 
       {/* Content -- with optional geographic side panel */}
-      <div className={`flex-1 overflow-hidden flex ${isInternational ? "flex-col lg:flex-row" : ""}`}>
+      <div className={`flex flex-1 overflow-hidden ${isInternational ? "flex-col lg:flex-row" : ""}`}>
         {/* Main content */}
-        <div className={`flex-1 overflow-y-auto p-6 ${isInternational ? "lg:border-r lg:border-border/30" : ""}`}>
+        <div className={`flex-1 overflow-y-auto p-5 sm:p-6 ${isInternational ? "lg:border-r lg:border-border/30" : ""}`}>
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 }}
-            className="mb-6"
+            className="mb-6 rounded-[1.75rem] border border-border/40 bg-background/20 p-5 sm:p-6"
           >
-            <div className="flex items-center gap-3 mb-2 flex-wrap">
+            <div className="mb-3 flex items-center gap-3 flex-wrap">
               <span className="text-[10px] font-mono text-muted-foreground">{risk.id}</span>
               <span
                 className="text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded"
@@ -127,10 +135,42 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
                 <span className="text-[8px] font-mono text-muted-foreground/60">{risk.sourceDetail}</span>
               )}
             </div>
-            <h2 className="text-2xl font-bold text-foreground flex items-center gap-3 text-balance">
+            <h2 className="flex items-center gap-3 text-balance text-2xl font-bold text-foreground sm:text-3xl">
               {isOpportunity && <Star className="h-6 w-6 text-gold shrink-0" />}
               {risk.name}
             </h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
+              {executiveHeadline}
+            </p>
+            <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.9fr)]">
+              <div className="rounded-2xl border border-border/35 bg-card/25 p-4">
+                <div className="dashboard-section-kicker">
+                  Executive Readout
+                </div>
+                <div className="mt-2 text-sm leading-7 text-foreground/90">
+                  {risk.financialExposure
+                    ? `This ${isOpportunity ? "opportunity" : "risk"} carries ${formatCurrency(risk.financialExposure, currency)} in stated exposure and sits in the ${riskLevel.toLowerCase()} band of the enterprise matrix.`
+                    : `This ${isOpportunity ? "opportunity" : "risk"} sits in the ${riskLevel.toLowerCase()} band of the enterprise matrix with no explicit financial exposure published in the register.`}
+                </div>
+              </div>
+              <div
+                className="rounded-2xl border p-4"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${riskColor} 10%, transparent)`,
+                  borderColor: `color-mix(in srgb, ${riskColor} 24%, transparent)`,
+                }}
+              >
+                <div className="dashboard-section-kicker">
+                  Bow-Tie Focus
+                </div>
+                <div className="mt-2 text-lg font-semibold" style={{ color: riskColor }}>
+                  {isOpportunity ? "Opportunity realization pathway" : "Cause to consequence pathway"}
+                </div>
+                <div className="mt-2 text-sm leading-6 text-foreground/85">
+                  {risk.causes.length} causes, {risk.impacts.length} {isOpportunity ? "outcomes" : "impacts"}, and {risk.controls.length} active controls.
+                </div>
+              </div>
+            </div>
           </motion.div>
 
           {/* Meta + score row */}
@@ -138,7 +178,7 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.14 }}
-            className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8"
+            className="mb-8 grid grid-cols-2 gap-3 xl:grid-cols-[repeat(4,minmax(0,1fr))_minmax(220px,1.15fr)]"
           >
             {[
               { icon: Tag, label: "Category", value: risk.category },
@@ -158,7 +198,7 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
               <div>
                 <p className="text-[8px] font-mono uppercase tracking-wider text-muted-foreground/50">Risk Score</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold font-mono" style={{ color: riskColor }}>{risk.likelihood * risk.impact}</span>
+                  <span className="text-2xl font-bold font-mono" style={{ color: riskColor }}>{riskScore}</span>
                   <span className="text-[10px] font-mono text-muted-foreground/40">/25</span>
                 </div>
               </div>
@@ -180,12 +220,12 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.17 }}
-              className="mb-6 p-3 rounded-lg border border-primary/20 bg-primary/5"
-            >
-              <p className="text-[8px] font-mono uppercase tracking-wider text-muted-foreground/50 mb-1">Financial Exposure ({currency})</p>
-              <p className="text-[12px] font-semibold font-mono text-primary">{formatCurrency(risk.financialExposure, currency)}</p>
-            </motion.div>
+            transition={{ delay: 0.17 }}
+            className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 p-4"
+          >
+              <p className="mb-1 text-[8px] font-mono uppercase tracking-wider text-muted-foreground/50">Financial Exposure ({currency})</p>
+              <p className="text-sm font-semibold font-mono text-primary">{formatCurrency(risk.financialExposure, currency)}</p>
+          </motion.div>
           )}
 
           {/* Bow-Tie Section */}
@@ -193,17 +233,19 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.22 }}
+            className="mb-8"
           >
-            <div className="flex items-center gap-2 mb-5">
+            <div className="mb-5 flex items-center gap-2">
               <div className="h-px flex-1" style={{ backgroundColor: `color-mix(in srgb, ${riskColor} 30%, transparent)` }} />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Bow-Tie Analysis</span>
+              <span className="dashboard-section-kicker text-center">Bow-Tie Executive Drilldown</span>
               <div className="h-px flex-1" style={{ backgroundColor: `color-mix(in srgb, ${riskColor} 30%, transparent)` }} />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_80px_1fr] gap-4 items-start mb-8">
+            <div className="rounded-[1.75rem] border border-border/40 bg-background/18 p-4 sm:p-5">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_96px_minmax(0,1fr)] items-start">
               {/* Causes */}
               <div>
-                <div className="flex items-center gap-2 mb-3">
+                <div className="mb-3 flex items-center gap-2">
                   <Zap className="h-4 w-4 text-risk-high" />
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-risk-high">Root Causes</span>
                 </div>
@@ -214,7 +256,7 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 + i * 0.06 }}
-                      className="flex items-start gap-2 p-3 rounded-lg bg-secondary/30 border-l-2 text-[12px] text-foreground/80 leading-relaxed"
+                      className="flex items-start gap-2 rounded-xl border border-border/30 bg-card/25 p-3.5 text-[13px] leading-7 text-foreground/85"
                       style={{ borderColor: "var(--risk-high)" }}
                     >
                       <ArrowRight className="h-3 w-3 text-risk-high/60 shrink-0 mt-1" />
@@ -225,13 +267,13 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
               </div>
 
               {/* Center node */}
-              <div className="hidden md:flex flex-col items-center justify-center h-full">
+              <div className="hidden h-full md:flex flex-col items-center justify-center">
                 <div className="w-px flex-1" style={{ backgroundColor: `color-mix(in srgb, ${riskColor} 25%, transparent)` }} />
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.35, type: "spring", stiffness: 200 }}
-                  className="h-14 w-14 rounded-full flex items-center justify-center my-3"
+                  className="my-3 flex h-20 w-20 flex-col items-center justify-center rounded-full text-center"
                   style={{
                     backgroundColor: `color-mix(in srgb, ${riskColor} 15%, var(--card))`,
                     border: `2px solid ${riskColor}`,
@@ -239,13 +281,16 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
                   }}
                 >
                   {isOpportunity ? <Star className="h-6 w-6" style={{ color: riskColor }} /> : <AlertTriangle className="h-6 w-6" style={{ color: riskColor }} />}
+                  <span className="mt-2 px-2 text-[8px] font-mono uppercase tracking-[0.14em]" style={{ color: riskColor }}>
+                    {isOpportunity ? "Value" : "Risk Event"}
+                  </span>
                 </motion.div>
                 <div className="w-px flex-1" style={{ backgroundColor: `color-mix(in srgb, ${riskColor} 25%, transparent)` }} />
               </div>
 
               {/* Impacts */}
               <div>
-                <div className="flex items-center gap-2 mb-3">
+                <div className="mb-3 flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-risk-critical" />
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-risk-critical">{isOpportunity ? "Outcomes" : `Impacts (${currency})`}</span>
                 </div>
@@ -256,7 +301,7 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 + i * 0.06 }}
-                      className="flex items-start gap-2 p-3 rounded-lg bg-secondary/30 border-l-2 text-[12px] text-foreground/80 leading-relaxed"
+                      className="flex items-start gap-2 rounded-xl border border-border/30 bg-card/25 p-3.5 text-[13px] leading-7 text-foreground/85"
                       style={{ borderColor: isOpportunity ? "var(--gold)" : "var(--risk-critical)" }}
                     >
                       <ArrowRight className="h-3 w-3 shrink-0 mt-1" style={{ color: isOpportunity ? "var(--gold-dim)" : "var(--risk-critical)" }} />
@@ -265,6 +310,7 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
                   ))}
                 </div>
               </div>
+            </div>
             </div>
           </motion.div>
 
@@ -275,18 +321,18 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
             transition={{ delay: 0.45 }}
             className="mb-8"
           >
-            <div className="flex items-center gap-2 mb-4">
+            <div className="mb-4 flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-risk-low" />
               <span className="text-[11px] font-semibold uppercase tracking-wider text-risk-low">Active Controls & Mitigations</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {risk.controls.map((control, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 + i * 0.06 }}
-                  className="flex items-start gap-2 p-3 rounded-lg text-[12px] font-mono text-risk-low bg-risk-low/5 border border-risk-low/15 leading-relaxed"
+                  className="flex items-start gap-2 rounded-xl border border-risk-low/15 bg-risk-low/5 p-3.5 text-[12px] font-mono leading-relaxed text-risk-low"
                 >
                   <ShieldCheck className="h-3.5 w-3.5 text-risk-low/60 shrink-0 mt-0.5" />
                   {control}
@@ -303,13 +349,13 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
               transition={{ delay: 0.55 }}
               className="mb-6"
             >
-              <div className="flex items-center gap-2 mb-4">
+              <div className="mb-4 flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">Mitigation Timeline</span>
               </div>
-              <div className="relative flex items-start gap-0">
+              <div className="relative flex items-start gap-0 overflow-x-auto rounded-[1.5rem] border border-border/35 bg-background/18 p-4">
                 <div className="absolute top-4 left-4 right-4 h-0.5 bg-border/40 z-0" />
-                <div className="grid w-full z-10" style={{ gridTemplateColumns: `repeat(${risk.mitigationTimeline.length}, 1fr)` }}>
+                <div className="grid min-w-[520px] w-full z-10" style={{ gridTemplateColumns: `repeat(${risk.mitigationTimeline.length}, 1fr)` }}>
                   {risk.mitigationTimeline.map((step, i) => {
                     const isDone = step.status === "done"
                     const isActive = step.status === "active"
@@ -320,7 +366,7 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6 + i * 0.1 }}
-                        className="flex flex-col items-center text-center"
+                        className="flex flex-col items-center px-2 text-center"
                       >
                         <div
                           className="h-8 w-8 rounded-full flex items-center justify-center mb-2 border-2"
@@ -362,7 +408,7 @@ export function RiskDetailView({ risk, onBack }: RiskDetailViewProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3, duration: 0.4 }}
-            className="w-full lg:w-[360px] shrink-0 overflow-y-auto p-4 bg-card/20"
+            className="w-full shrink-0 overflow-y-auto bg-card/20 p-4 lg:w-[380px]"
           >
             <GeographicImpactMap risk={risk} />
           </motion.div>

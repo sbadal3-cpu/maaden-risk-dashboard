@@ -1,63 +1,71 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Sun, Moon } from "lucide-react"
+import { ChevronDown, Palette } from "lucide-react"
+
+type ThemeName = "executive" | "dark" | "light" | "bloomberg" | "oasis" | "mist"
+
+const THEMES: { value: ThemeName; label: string }[] = [
+  { value: "executive", label: "Executive" },
+  { value: "dark", label: "Dark" },
+  { value: "light", label: "Light" },
+  { value: "bloomberg", label: "Bloomberg" },
+  { value: "oasis", label: "Oasis" },
+  { value: "mist", label: "Mist" },
+]
+
+const DARK_THEMES: ThemeName[] = ["executive", "dark", "bloomberg"]
+
+function applyTheme(next: ThemeName) {
+  const root = document.documentElement
+  root.dataset.theme = next
+  root.classList.toggle("dark", DARK_THEMES.includes(next))
+  root.classList.toggle("light", !DARK_THEMES.includes(next))
+}
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark")
+  const [theme, setTheme] = useState<ThemeName>("executive")
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    // Check for saved preference or system preference
-    const saved = localStorage.getItem("maaden-theme") as "dark" | "light" | null
-    if (saved) {
-      setTheme(saved)
-      document.documentElement.classList.toggle("light", saved === "light")
-      document.documentElement.classList.toggle("dark", saved === "dark")
-    }
+    const saved = localStorage.getItem("maaden-theme") as ThemeName | null
+    const nextTheme = saved && THEMES.some((option) => option.value === saved) ? saved : "executive"
+    setTheme(nextTheme)
+    applyTheme(nextTheme)
   }, [])
 
-  function toggleTheme() {
-    const next = theme === "dark" ? "light" : "dark"
+  function handleChange(next: ThemeName) {
     setTheme(next)
     localStorage.setItem("maaden-theme", next)
-    document.documentElement.classList.toggle("light", next === "light")
-    document.documentElement.classList.toggle("dark", next === "dark")
+    applyTheme(next)
   }
 
   if (!mounted) {
     return (
-      <div className="h-7 w-14 rounded-full bg-secondary border border-border" />
+      <div className="h-10 w-full rounded-xl border border-border bg-secondary/60" />
     )
   }
 
   return (
-    <button
-      onClick={toggleTheme}
-      className="relative flex items-center h-7 w-14 rounded-full transition-colors duration-300 border"
-      style={{
-        backgroundColor: theme === "dark" ? "var(--secondary)" : "var(--gold)",
-        borderColor: theme === "dark" ? "var(--border)" : "var(--gold-dim)",
-      }}
-      title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-    >
-      <span
-        className="absolute flex items-center justify-center h-5 w-5 rounded-full bg-card shadow-sm transition-transform duration-300"
-        style={{
-          transform: theme === "dark" ? "translateX(4px)" : "translateX(32px)",
-        }}
+    <label className="relative flex w-full min-w-0 items-center gap-2 rounded-xl border border-border/60 bg-background/40 px-3 py-2 text-sm text-foreground">
+      <Palette className="h-4 w-4 shrink-0 text-primary" />
+      <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-muted-foreground">
+        Theme
+      </span>
+      <select
+        value={theme}
+        onChange={(e) => handleChange(e.target.value as ThemeName)}
+        className="min-w-0 flex-1 appearance-none bg-transparent pr-6 text-right text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground outline-none"
+        aria-label="Select dashboard theme"
       >
-        {theme === "dark" ? (
-          <Moon className="h-3 w-3 text-primary" />
-        ) : (
-          <Sun className="h-3 w-3 text-primary-foreground" style={{ color: "#6B5D3A" }} />
-        )}
-      </span>
-      <span className="sr-only">
-        {theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      </span>
-    </button>
+        {THEMES.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-muted-foreground" />
+    </label>
   )
 }

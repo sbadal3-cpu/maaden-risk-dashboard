@@ -3,100 +3,274 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Ma'aden Dark Command Center Theme (Default) */
 :root,
-.dark {
-  --background: #1C1C1B;
-  --foreground: #E8E2D0;
-  --card: #242422;
-  --card-foreground: #E8E2D0;
-  --popover: #1C1C1B;
-  --popover-foreground: #E8E2D0;
-  --primary: #B4A56F;
-  --primary-foreground: #1C1C1B;
-  --secondary: #2A2A28;
-  --secondary-foreground: #B4A56F;
-  --muted: #2A2A28;
-  --muted-foreground: #8A8577;
-  --accent: #B4A56F;
-  --accent-foreground: #1C1C1B;
-  --destructive: #C45C5C;
-  --destructive-foreground: #FDE8E8;
-  --border: #3A3A37;
-  --input: #2A2A28;
-  --ring: #B4A56F;
-  --chart-1: #B4A56F;
-  --chart-2: #C45C5C;
-  --chart-3: #5CB4A5;
-  --chart-4: #E8A54F;
-  --chart-5: #7B93DB;
+[data-theme="executive"] {
+  --background: #151717;
+  --foreground: #ebe3d1;
+  --card: #1d1f1f;
+  --card-foreground: #ebe3d1;
+  --popover: #151717;
+  --popover-foreground: #ebe3d1;
+  --primary: #bba46a;
+  --primary-foreground: #161616;
+  --secondary: #232626;
+  --secondary-foreground: #d8c89c;
+  --muted: #212424;
+  --muted-foreground: #928b7b;
+  --accent: #c1ab73;
+  --accent-foreground: #161616;
+  --destructive: #cf5f5f;
+  --destructive-foreground: #fff2f2;
+  --border: #343837;
+  --input: #232626;
+  --ring: #bba46a;
+  --chart-1: #bba46a;
+  --chart-2: #cf5f5f;
+  --chart-3: #5faea2;
+  --chart-4: #d6a45b;
+  --chart-5: #7b93db;
   --radius: 0.5rem;
-  --sidebar: #1A1A19;
-  --sidebar-foreground: #E8E2D0;
-  --sidebar-primary: #B4A56F;
-  --sidebar-primary-foreground: #1C1C1B;
-  --sidebar-accent: #2A2A28;
-  --sidebar-accent-foreground: #B4A56F;
-  --sidebar-border: #3A3A37;
-  --sidebar-ring: #B4A56F;
-  --gold: #B4A56F;
-  --gold-dim: #8A7D52;
-  --gold-glow: #C8B87A;
-  --surface-elevated: #2E2E2C;
-  --risk-critical: #E05252;
-  --risk-high: #E8A54F;
-  --risk-medium: #B4A56F;
-  --risk-low: #5CB4A5;
-  --risk-minimal: #4A7A6E;
+  --sidebar: #141616;
+  --sidebar-foreground: #ebe3d1;
+  --sidebar-primary: #bba46a;
+  --sidebar-primary-foreground: #161616;
+  --sidebar-accent: #232626;
+  --sidebar-accent-foreground: #d8c89c;
+  --sidebar-border: #343837;
+  --sidebar-ring: #bba46a;
+  --gold: #bba46a;
+  --gold-dim: #8f7b4d;
+  --gold-glow: #d0ba85;
+  --surface-elevated: #272a29;
+  --risk-critical: #e15c5c;
+  --risk-high: #e1a458;
+  --risk-medium: #bba46a;
+  --risk-low: #5faea2;
+  --risk-minimal: #4b7b71;
 }
 
-/* Ma'aden Light Executive Theme - Premium Corporate */
-.light {
-  --background: #FAFAF8;
-  --foreground: #1A1A18;
-  --card: #FFFFFF;
-  --card-foreground: #1A1A18;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1A18;
-  --primary: #7A6B3A;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F5F3EE;
-  --secondary-foreground: #5A4D2A;
-  --muted: #EDEAE3;
-  --muted-foreground: #5A5548;
-  --accent: #7A6B3A;
-  --accent-foreground: #FFFFFF;
-  --destructive: #B83C3C;
-  --destructive-foreground: #FFFFFF;
-  --border: #D8D4C8;
-  --input: #F5F3EE;
-  --ring: #7A6B3A;
-  --chart-1: #7A6B3A;
-  --chart-2: #B83C3C;
-  --chart-3: #2D7A6A;
-  --chart-4: #C4842D;
-  --chart-5: #4A5F98;
-  --sidebar: #F5F3EE;
-  --sidebar-foreground: #1A1A18;
-  --sidebar-primary: #7A6B3A;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #EDEAE3;
-  --sidebar-accent-foreground: #7A6B3A;
-  --sidebar-border: #D8D4C8;
-  --sidebar-ring: #7A6B3A;
-  --gold: #7A6B3A;
-  --gold-dim: #5A4D2A;
-  --gold-glow: #9A8B5A;
-  --surface-elevated: #FFFFFF;
-  --risk-critical: #C43C3C;
-  --risk-high: #C4842D;
-  --risk-medium: #7A6B3A;
-  --risk-low: #2D7A6A;
-  --risk-minimal: #1D5A4A;
+[data-theme="dark"] {
+  --background: #1c1c1b;
+  --foreground: #e8e2d0;
+  --card: #242422;
+  --card-foreground: #e8e2d0;
+  --popover: #1c1c1b;
+  --popover-foreground: #e8e2d0;
+  --primary: #b4a56f;
+  --primary-foreground: #1c1c1b;
+  --secondary: #2a2a28;
+  --secondary-foreground: #b4a56f;
+  --muted: #2a2a28;
+  --muted-foreground: #8a8577;
+  --accent: #b4a56f;
+  --accent-foreground: #1c1c1b;
+  --destructive: #c45c5c;
+  --destructive-foreground: #fde8e8;
+  --border: #3a3a37;
+  --input: #2a2a28;
+  --ring: #b4a56f;
+  --chart-1: #b4a56f;
+  --chart-2: #c45c5c;
+  --chart-3: #5cb4a5;
+  --chart-4: #e8a54f;
+  --chart-5: #7b93db;
+  --sidebar: #1a1a19;
+  --sidebar-foreground: #e8e2d0;
+  --sidebar-primary: #b4a56f;
+  --sidebar-primary-foreground: #1c1c1b;
+  --sidebar-accent: #2a2a28;
+  --sidebar-accent-foreground: #b4a56f;
+  --sidebar-border: #3a3a37;
+  --sidebar-ring: #b4a56f;
+  --gold: #b4a56f;
+  --gold-dim: #8a7d52;
+  --gold-glow: #c8b87a;
+  --surface-elevated: #2e2e2c;
+  --risk-critical: #e05252;
+  --risk-high: #e8a54f;
+  --risk-medium: #b4a56f;
+  --risk-low: #5cb4a5;
+  --risk-minimal: #4a7a6e;
+}
+
+[data-theme="light"] {
+  --background: #fafaf8;
+  --foreground: #1a1a18;
+  --card: #ffffff;
+  --card-foreground: #1a1a18;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a18;
+  --primary: #7a6b3a;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f3ee;
+  --secondary-foreground: #5a4d2a;
+  --muted: #edeae3;
+  --muted-foreground: #5a5548;
+  --accent: #7a6b3a;
+  --accent-foreground: #ffffff;
+  --destructive: #b83c3c;
+  --destructive-foreground: #ffffff;
+  --border: #d8d4c8;
+  --input: #f5f3ee;
+  --ring: #7a6b3a;
+  --chart-1: #7a6b3a;
+  --chart-2: #b83c3c;
+  --chart-3: #2d7a6a;
+  --chart-4: #c4842d;
+  --chart-5: #4a5f98;
+  --sidebar: #f5f3ee;
+  --sidebar-foreground: #1a1a18;
+  --sidebar-primary: #7a6b3a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #edeae3;
+  --sidebar-accent-foreground: #7a6b3a;
+  --sidebar-border: #d8d4c8;
+  --sidebar-ring: #7a6b3a;
+  --gold: #7a6b3a;
+  --gold-dim: #5a4d2a;
+  --gold-glow: #9a8b5a;
+  --surface-elevated: #ffffff;
+  --risk-critical: #c43c3c;
+  --risk-high: #c4842d;
+  --risk-medium: #7a6b3a;
+  --risk-low: #2d7a6a;
+  --risk-minimal: #1d5a4a;
+}
+
+[data-theme="bloomberg"] {
+  --background: #0f1112;
+  --foreground: #f0ede6;
+  --card: #171a1c;
+  --card-foreground: #f0ede6;
+  --popover: #101214;
+  --popover-foreground: #f0ede6;
+  --primary: #ff9b2f;
+  --primary-foreground: #101214;
+  --secondary: #191d20;
+  --secondary-foreground: #ffb563;
+  --muted: #171b1e;
+  --muted-foreground: #8d9095;
+  --accent: #ff9b2f;
+  --accent-foreground: #101214;
+  --destructive: #d95a5a;
+  --destructive-foreground: #fff1f1;
+  --border: #2c3136;
+  --input: #1a1e21;
+  --ring: #ff9b2f;
+  --chart-1: #ff9b2f;
+  --chart-2: #d95a5a;
+  --chart-3: #5db0a8;
+  --chart-4: #d1b84c;
+  --chart-5: #7d95df;
+  --sidebar: #0d1011;
+  --sidebar-foreground: #f0ede6;
+  --sidebar-primary: #ff9b2f;
+  --sidebar-primary-foreground: #101214;
+  --sidebar-accent: #191d20;
+  --sidebar-accent-foreground: #ffb563;
+  --sidebar-border: #2c3136;
+  --sidebar-ring: #ff9b2f;
+  --gold: #ff9b2f;
+  --gold-dim: #c6741f;
+  --gold-glow: #ffbe72;
+  --surface-elevated: #1f2428;
+  --risk-critical: #ed5d5d;
+  --risk-high: #ff9b2f;
+  --risk-medium: #d1b84c;
+  --risk-low: #5db0a8;
+  --risk-minimal: #4f7c76;
+}
+
+[data-theme="oasis"] {
+  --background: #f4f5f0;
+  --foreground: #1d2624;
+  --card: #fcfcf8;
+  --card-foreground: #1d2624;
+  --popover: #fcfcf8;
+  --popover-foreground: #1d2624;
+  --primary: #476e63;
+  --primary-foreground: #ffffff;
+  --secondary: #e6ece6;
+  --secondary-foreground: #385850;
+  --muted: #e9eee8;
+  --muted-foreground: #5d6c67;
+  --accent: #8c7a4e;
+  --accent-foreground: #ffffff;
+  --destructive: #bc5454;
+  --destructive-foreground: #ffffff;
+  --border: #d0d9d2;
+  --input: #f6f8f4;
+  --ring: #476e63;
+  --chart-1: #476e63;
+  --chart-2: #bc5454;
+  --chart-3: #5f9e8f;
+  --chart-4: #b38d49;
+  --chart-5: #657eb8;
+  --sidebar: #ebf0eb;
+  --sidebar-foreground: #1d2624;
+  --sidebar-primary: #476e63;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #dde6df;
+  --sidebar-accent-foreground: #385850;
+  --sidebar-border: #d0d9d2;
+  --sidebar-ring: #476e63;
+  --gold: #8c7a4e;
+  --gold-dim: #6d5e3d;
+  --gold-glow: #b39c67;
+  --surface-elevated: #ffffff;
+  --risk-critical: #c75454;
+  --risk-high: #c28739;
+  --risk-medium: #8c7a4e;
+  --risk-low: #476e63;
+  --risk-minimal: #375950;
+}
+
+[data-theme="mist"] {
+  --background: #eef2f4;
+  --foreground: #182027;
+  --card: #f9fbfc;
+  --card-foreground: #182027;
+  --popover: #f9fbfc;
+  --popover-foreground: #182027;
+  --primary: #4f6577;
+  --primary-foreground: #ffffff;
+  --secondary: #e2e8ec;
+  --secondary-foreground: #465867;
+  --muted: #e7ecef;
+  --muted-foreground: #64717b;
+  --accent: #6e7f93;
+  --accent-foreground: #ffffff;
+  --destructive: #b45454;
+  --destructive-foreground: #ffffff;
+  --border: #cfd8de;
+  --input: #f5f8fa;
+  --ring: #4f6577;
+  --chart-1: #4f6577;
+  --chart-2: #b45454;
+  --chart-3: #5a8f9c;
+  --chart-4: #b78c53;
+  --chart-5: #6679b9;
+  --sidebar: #e4eaee;
+  --sidebar-foreground: #182027;
+  --sidebar-primary: #4f6577;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #dce4e9;
+  --sidebar-accent-foreground: #465867;
+  --sidebar-border: #cfd8de;
+  --sidebar-ring: #4f6577;
+  --gold: #7d7460;
+  --gold-dim: #5d5648;
+  --gold-glow: #a79a81;
+  --surface-elevated: #ffffff;
+  --risk-critical: #bc5656;
+  --risk-high: #ba8749;
+  --risk-medium: #7d7460;
+  --risk-low: #4f7b86;
+  --risk-minimal: #46656d;
 }
 
 @theme inline {
-  --font-sans: 'Inter', 'Geist', 'Geist Fallback', sans-serif;
+  --font-sans: 'Geist', 'Inter', 'Geist Fallback', sans-serif;
   --font-mono: 'JetBrains Mono', 'Geist Mono', 'Geist Mono Fallback', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -149,8 +323,77 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body {
+    height: 100%;
+    min-height: 100%;
+    overflow-x: clip;
+  }
+  html {
+    color-scheme: dark;
+  }
+  html[data-theme="light"],
+  html[data-theme="oasis"],
+  html[data-theme="mist"] {
+    color-scheme: light;
+  }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "liga" 1, "calt" 1, "tnum" 1;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer components {
+  .dashboard-shell {
+    background:
+      radial-gradient(circle at top, color-mix(in srgb, var(--gold) 10%, transparent) 0%, transparent 38%),
+      linear-gradient(180deg, color-mix(in srgb, var(--card) 82%, var(--background)) 0%, var(--background) 100%);
+  }
+
+  .dashboard-panel {
+    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent) 0%, color-mix(in srgb, var(--background) 85%, transparent) 100%);
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .dashboard-section-kicker {
+    font-size: 10px;
+    line-height: 1;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: color-mix(in srgb, var(--muted-foreground) 88%, transparent);
+  }
+
+  .dashboard-section-title {
+    font-size: clamp(1rem, 0.92rem + 0.45vw, 1.4rem);
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--foreground);
+  }
+
+  .dashboard-section-copy {
+    font-size: 0.93rem;
+    line-height: 1.7;
+    color: color-mix(in srgb, var(--muted-foreground) 92%, transparent);
+  }
+
+  .dashboard-density {
+    font-size: 0.92rem;
+  }
+
+  .dashboard-density .dashboard-section-title {
+    font-size: clamp(0.95rem, 0.88rem + 0.35vw, 1.22rem);
+  }
+
+  .dashboard-density .dashboard-section-copy {
+    font-size: 0.84rem;
+    line-height: 1.45;
   }
 }
 
@@ -223,6 +466,55 @@
   -webkit-overflow-scrolling: touch;
 }
 
+@media (max-height: 900px) {
+  .dashboard-density {
+    font-size: 0.82rem;
+  }
+
+  .dashboard-density .dashboard-section-kicker {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+  }
+
+  .dashboard-density .dashboard-section-title {
+    font-size: clamp(0.92rem, 0.84rem + 0.25vw, 1.08rem);
+  }
+
+  .dashboard-density .dashboard-section-copy {
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+
+  .dashboard-density .rounded-2xl,
+  .dashboard-density .rounded-xl {
+    --compact-padding: 0.7rem;
+  }
+
+  .dashboard-density .p-3 {
+    padding: 0.68rem;
+  }
+
+  .dashboard-density .p-3\.5 {
+    padding: 0.78rem;
+  }
+
+  .dashboard-density .gap-3 {
+    gap: 0.55rem;
+  }
+
+  .dashboard-density .gap-2 {
+    gap: 0.42rem;
+  }
+
+  .dashboard-density .mb-3 {
+    margin-bottom: 0.55rem;
+  }
+
+  .dashboard-density .pb-3 {
+    padding-bottom: 0.55rem;
+  }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -238,8 +530,10 @@
   background: var(--gold-dim);
 }
 
-/* Light mode enhancements */
-.light {
+/* Light-family theme enhancements */
+html[data-theme="light"],
+html[data-theme="oasis"],
+html[data-theme="mist"] {
   /* Better card elevation */
   & .rounded-lg {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05);

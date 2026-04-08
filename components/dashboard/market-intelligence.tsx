@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import useSWR from "swr"
 import {
   Newspaper,
@@ -19,9 +19,16 @@ interface NewsArticle {
   title: string
   description: string
   source: string
+  sourceLabel?: string
+  sourceType?: string
   publishedAt: string
   url: string
   category: string
+  severity?: string
+  severityLabel?: string
+  business?: string
+  businessImpact?: string
+  aiEnriched?: boolean
 }
 
 interface NewsResponse {
@@ -42,14 +49,41 @@ interface SyncResponse {
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 const CATEGORY_COLORS: Record<string, string> = {
-  discovery: "var(--gold)",
-  vision2030: "var(--risk-low)",
-  strategic: "var(--chart-5)",
+  financial: "var(--chart-4)",
+  operational: "var(--chart-3)",
   regulatory: "var(--risk-high)",
-  benchmark: "var(--primary)",
-  operations: "var(--chart-3)",
-  market: "var(--chart-4)",
-  mining: "var(--primary)",
+  esg: "var(--risk-low)",
+  geopolitical: "var(--chart-5)",
+  general: "var(--primary)",
+}
+
+function getSeverityTone(severity?: string) {
+  if (severity === "Critical") {
+    return {
+      color: "var(--risk-critical)",
+      bg: "color-mix(in srgb, var(--risk-critical) 10%, transparent)",
+      border: "color-mix(in srgb, var(--risk-critical) 25%, transparent)",
+    }
+  }
+  if (severity === "High") {
+    return {
+      color: "var(--risk-high)",
+      bg: "color-mix(in srgb, var(--risk-high) 10%, transparent)",
+      border: "color-mix(in srgb, var(--risk-high) 25%, transparent)",
+    }
+  }
+  if (severity === "Medium") {
+    return {
+      color: "var(--risk-medium)",
+      bg: "color-mix(in srgb, var(--risk-medium) 10%, transparent)",
+      border: "color-mix(in srgb, var(--risk-medium) 25%, transparent)",
+    }
+  }
+  return {
+    color: "var(--risk-low)",
+    bg: "color-mix(in srgb, var(--risk-low) 10%, transparent)",
+    border: "color-mix(in srgb, var(--risk-low) 25%, transparent)",
+  }
 }
 
 function formatTimeAgo(dateStr: string): string {
@@ -70,6 +104,19 @@ function formatTimeAgo(dateStr: string): string {
   }
 }
 
+function stripHtml(value?: string) {
+  if (!value) return ""
+
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
 export function MarketIntelligence() {
   const { data, isLoading, mutate } = useSWR<NewsResponse>("/api/news", fetcher, {
     refreshInterval: 300000, // 5 minutes
@@ -78,6 +125,10 @@ export function MarketIntelligence() {
   const [mounted, setMounted] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<SyncResponse | null>(null)
+  const [showAll, setShowAll] = useState(false)
+
+  const articles = useMemo(() => (Array.isArray(data) ? data : data?.articles || []), [data])
+  const visibleArticles = useMemo(() => (showAll ? articles : articles.slice(0, 3)), [articles, showAll])
 
   useEffect(() => {
     setMounted(true)
@@ -99,7 +150,7 @@ export function MarketIntelligence() {
 
   if (!mounted) {
     return (
-      <div className="flex flex-col h-full gap-3">
+    <div className="flex min-h-0 flex-col gap-3">
         <div className="h-6 w-40 rounded bg-secondary/40 animate-pulse" />
         <div className="flex-1 flex flex-col gap-2">
           {[1, 2, 3].map((i) => (
@@ -111,43 +162,56 @@ export function MarketIntelligence() {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Newspaper className="h-4 w-4 text-primary" />
-            <div className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-risk-low animate-pulse" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-primary">
-              Market Intelligence
+    <div className="flex min-h-0 flex-col">
+      <div className="mb-3 border-b border-border/35 pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Newspaper className="h-4 w-4 text-primary" />
+                <div className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-risk-low animate-pulse" />
+              </div>
+              <p className="dashboard-section-kicker">
+                Live Intelligence
+              </p>
+            </div>
+            <h2 className="dashboard-section-title mt-1.5">
+              Intelligence Feed
             </h2>
-            <p className="text-[9px] text-muted-foreground font-mono mt-0.5">
-              Real-Time Feed | {"Ma'aden"} + KSA Mining
+            <p className="dashboard-section-copy mt-1 text-sm leading-tight">
+              External signals relevant to Ma&apos;aden, KSA mining, and commodity risk conditions.
             </p>
           </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => mutate()}
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-border/60 text-muted-foreground/60 transition-all hover:bg-primary/10 hover:text-primary"
+              title="Refresh news"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
+            </button>
+            <span className="flex items-center gap-1 rounded-full border border-risk-low/20 bg-risk-low/10 px-2 py-1 text-[8px] font-mono uppercase tracking-[0.16em] text-risk-low">
+              <Radio className="h-2.5 w-2.5 animate-pulse" />
+              Live
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => mutate()}
-            className="h-6 w-6 flex items-center justify-center rounded text-muted-foreground/50 hover:text-primary hover:bg-primary/10 transition-all"
-            title="Refresh news"
-          >
-            <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
-          </button>
-          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-wider bg-risk-low/10 border border-risk-low/20 text-risk-low">
-            <Radio className="h-2.5 w-2.5 animate-pulse" />
-            Live
-          </span>
-        </div>
+      </div>
+
+      <div className="mb-2 flex items-center justify-between text-[9px]">
+        <span className="font-mono uppercase tracking-[0.16em] text-muted-foreground/70">
+          {articles.length} live item{articles.length !== 1 ? "s" : ""}
+        </span>
+        <span className="font-mono uppercase tracking-[0.16em] text-primary/60">
+          Real-Time Feed
+        </span>
       </div>
 
       {/* Google Sheets Sync Button */}
       <button
         onClick={handleSyncSheets}
         disabled={syncing}
-        className="group relative flex items-center justify-center gap-2 w-full py-2 mb-3 rounded border text-[10px] font-semibold uppercase tracking-wider transition-all duration-200 overflow-hidden disabled:cursor-not-allowed"
+        className="group relative mb-2 flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl border py-2 text-[9px] font-semibold uppercase tracking-[0.16em] transition-all duration-200 disabled:cursor-not-allowed"
         style={{
           color: syncing ? "var(--risk-low)" : "var(--chart-5)",
           backgroundColor: syncing ? "color-mix(in srgb, var(--risk-low) 8%, transparent)" : "color-mix(in srgb, var(--chart-5) 8%, transparent)",
@@ -174,10 +238,9 @@ export function MarketIntelligence() {
         )}
       </button>
 
-      {/* Sync result notification */}
       {syncResult && (
         <div
-          className="flex items-start gap-2 p-2 mb-3 rounded text-[10px] font-mono border transition-all animate-fade-in-up"
+          className="animate-fade-in-up mb-2 flex items-start gap-2 rounded-xl border p-2.5 text-[9px] font-mono transition-all"
           style={{
             backgroundColor: syncResult.success
               ? "color-mix(in srgb, var(--risk-low) 10%, transparent)"
@@ -213,69 +276,129 @@ export function MarketIntelligence() {
         </div>
       )}
 
-      {/* News articles */}
-      <div className="flex-1 overflow-y-auto flex flex-col gap-2 pr-1">
+      <div className="min-h-0 flex-1">
+        <div className="flex flex-col gap-2">
         {isLoading
           ? [1, 2, 3, 4].map((i) => (
-              <div key={i} className="p-2.5 rounded border border-border/30 bg-secondary/20">
-                <div className="h-3 w-3/4 rounded bg-secondary/40 animate-pulse mb-2" />
-                <div className="h-2 w-full rounded bg-secondary/20 animate-pulse mb-1" />
+              <div key={i} className="rounded-2xl border border-border/30 bg-secondary/20 p-2.5">
+                <div className="mb-2 h-3 w-3/4 rounded bg-secondary/40 animate-pulse" />
+                <div className="mb-1 h-2 w-full rounded bg-secondary/20 animate-pulse" />
                 <div className="h-2 w-2/3 rounded bg-secondary/20 animate-pulse" />
               </div>
             ))
-          : data?.articles?.map((article, i) => {
-              const catColor = CATEGORY_COLORS[article.category] || "var(--muted-foreground)"
+          : visibleArticles.map((article, i) => {
+              const catColor = CATEGORY_COLORS[article.category?.toLowerCase()] || "var(--muted-foreground)"
+              const severityTone = getSeverityTone(article.severity)
+              const cleanTitle = stripHtml(article.title) || "Untitled signal"
+              const cleanSummary = stripHtml(article.summary || article.description || "No summary available for this signal.")
+              const cleanImpact = stripHtml(article.businessImpact)
+              const cleanBusiness = stripHtml(article.business)
               return (
-                <a
+                <div
                   key={i}
-                  href={article.url !== "#" ? article.url : undefined}
-                  target={article.url !== "#" ? "_blank" : undefined}
-                  rel={article.url !== "#" ? "noopener noreferrer" : undefined}
-                  className="group p-2.5 rounded border border-border/30 bg-secondary/20 hover:bg-secondary/40 hover:border-border/60 transition-all duration-200 cursor-default"
+                  className="group rounded-2xl border border-border/35 bg-background/30 p-3 transition-all duration-200 hover:border-border/65 hover:bg-card/30"
                 >
-                  {/* Meta row */}
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="flex items-center gap-1.5">
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-1.5 flex-wrap">
                       <span
-                        className="text-[7px] font-mono uppercase tracking-wider px-1 py-0.5 rounded"
+                        className="rounded-full px-2 py-0.5 text-[8px] font-mono uppercase tracking-[0.16em]"
                         style={{
                           color: catColor,
                           backgroundColor: `color-mix(in srgb, ${catColor} 12%, transparent)`,
                           border: `1px solid color-mix(in srgb, ${catColor} 20%, transparent)`,
                         }}
                       >
-                        <Tag className="h-2 w-2 inline mr-0.5" />
+                        <Tag className="mr-0.5 inline h-2 w-2" />
                         {article.category}
                       </span>
-                      <span className="text-[8px] font-mono text-muted-foreground/50">
-                        {article.source}
+                      {article.severity && (
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[8px] font-mono uppercase tracking-[0.16em]"
+                          style={{
+                            color: severityTone.color,
+                            backgroundColor: severityTone.bg,
+                            border: `1px solid ${severityTone.border}`,
+                          }}
+                        >
+                          {article.severity}
+                        </span>
+                      )}
+                      <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-muted-foreground/55">
+                        {article.sourceLabel || article.source}
                       </span>
+                      {article.sourceType && (
+                        <span className="text-[8px] font-mono uppercase tracking-[0.14em] text-muted-foreground/40">
+                          {article.sourceType}
+                        </span>
+                      )}
                     </div>
                     {article.url !== "#" && (
-                      <ExternalLink className="h-2.5 w-2.5 text-muted-foreground/20 group-hover:text-primary/50 transition-colors shrink-0" />
+                      <a
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 rounded-full p-1 text-muted-foreground/35 transition-colors hover:text-primary"
+                        aria-label={`Open source for ${cleanTitle}`}
+                        title="Open source"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
                     )}
                   </div>
 
-                  {/* Title */}
-                  <p className="text-[11px] font-medium text-foreground leading-snug mb-1 group-hover:text-primary transition-colors">
-                    {article.title}
+                  <p className="mb-1.5 text-sm font-semibold leading-tight text-foreground transition-colors group-hover:text-primary">
+                    {cleanTitle}
                   </p>
 
-                  {/* Description */}
-                  <p className="text-[9px] text-muted-foreground leading-relaxed line-clamp-2">
-                    {article.description}
+                  {cleanBusiness && (
+                    <div className="mb-2 rounded-xl border border-primary/10 bg-primary/5 px-2.5 py-2">
+                      <div className="text-[9px] font-mono uppercase tracking-[0.16em] text-muted-foreground/60">
+                        Business Exposure
+                      </div>
+                      <div className="mt-1 text-[13px] font-medium leading-tight text-foreground">
+                        {cleanBusiness}
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="line-clamp-3 text-[13px] leading-tight text-muted-foreground">
+                    {cleanSummary}
                   </p>
 
-                  {/* Time */}
-                  <div className="flex items-center gap-1 mt-1.5">
+                  {cleanImpact && (
+                    <div className="mt-2 rounded-xl border border-border/35 bg-card/25 px-2.5 py-2">
+                      <div className="text-[9px] font-mono uppercase tracking-[0.16em] text-muted-foreground/60">
+                        Business Impact
+                      </div>
+                      <div className="mt-1 line-clamp-2 text-[13px] leading-tight text-foreground/85">
+                        {cleanImpact}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-2 flex items-center gap-1.5 border-t border-border/30 pt-2">
                     <Clock className="h-2.5 w-2.5 text-muted-foreground/30" />
-                    <span className="text-[8px] font-mono text-muted-foreground/40">
+                    <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-muted-foreground/45">
                       {formatTimeAgo(article.publishedAt)}
                     </span>
+                    {article.aiEnriched && (
+                      <span className="ml-auto text-[8px] font-mono uppercase tracking-[0.14em] text-primary/65">
+                        AI Enriched
+                      </span>
+                    )}
                   </div>
-                </a>
+                </div>
               )
             })}
+          {!isLoading && articles.length > 3 && (
+            <button
+              onClick={() => setShowAll((current) => !current)}
+              className="rounded-xl border border-border/35 bg-background/24 px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-primary transition-colors hover:border-border/60 hover:bg-card/24"
+            >
+              {showAll ? "Show Fewer Signals" : `View More (${articles.length - 3})`}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

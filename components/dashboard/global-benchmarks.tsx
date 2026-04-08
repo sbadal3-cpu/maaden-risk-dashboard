@@ -43,27 +43,41 @@ export function GlobalBenchmarks() {
   ]
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Title */}
-      <div className="flex items-center gap-2 mb-2.5">
-        <Globe className="h-4 w-4 text-primary" />
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-primary">
-            Global Intelligence
-          </h2>
-          <p className="text-[9px] text-muted-foreground font-mono mt-0.5">
-            2026 Benchmark Engine | ICMM Aligned
-          </p>
+    <div className="flex min-h-0 flex-col">
+      <div className="mb-3 border-b border-border/35 pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-primary" />
+              <p className="dashboard-section-kicker">
+                External Context
+              </p>
+            </div>
+            <h2 className="dashboard-section-title mt-1.5">
+              Global Benchmarks
+            </h2>
+            <p className="dashboard-section-copy mt-1 text-sm leading-tight">
+              Executive reference points from Risk Intelligence, Strategic Insights, and the World Bank.
+            </p>
+          </div>
+
+          <div className="shrink-0 rounded-xl border border-border/50 bg-background/35 px-2.5 py-1.5 text-right">
+            <p className="text-[9px] font-mono uppercase tracking-[0.16em] text-muted-foreground">
+              Active Benchmarks
+            </p>
+            <p className="mt-0.5 text-base font-semibold tabular-nums text-foreground">
+              {filteredBenchmarks.length}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-2">
+      <div className="mb-2 flex gap-1 overflow-x-auto pb-1">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className="flex items-center gap-1 px-2 py-1 rounded text-[8px] font-mono uppercase tracking-wider transition-all duration-200"
+            className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[8px] font-mono uppercase tracking-[0.14em] transition-all duration-200"
             style={{
               color:
                 activeTab === tab.key
@@ -86,28 +100,26 @@ export function GlobalBenchmarks() {
         ))}
       </div>
 
-      {/* Count */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[9px] font-mono text-muted-foreground/60">
-          {filteredBenchmarks.length} benchmark{filteredBenchmarks.length !== 1 ? "s" : ""}
+      <div className="mb-2 flex items-center justify-between text-[9px] text-muted-foreground">
+        <span className="font-mono uppercase tracking-[0.16em] text-muted-foreground/70">
+          {filteredBenchmarks.length} reference point{filteredBenchmarks.length !== 1 ? "s" : ""}
         </span>
-        <span className="text-[9px] font-mono text-primary/50">2026 Benchmark Engine</span>
+        <span className="font-mono uppercase tracking-[0.16em] text-primary/60">2026 Benchmark Engine</span>
       </div>
 
-      {/* Cards */}
-      <div className="flex-1 overflow-y-auto flex flex-col gap-2 pr-1">
+      <div className="min-h-0 flex-1">
+        <div className="flex flex-col gap-2">
         {filteredBenchmarks.map((benchmark) => {
           const style = severityStyles[benchmark.severity]
           return (
             <div
               key={benchmark.id}
-              className="group p-2.5 rounded border border-border/50 bg-secondary/20 hover:bg-secondary/40 transition-all duration-200 cursor-default"
+              className="group rounded-2xl border border-border/45 bg-background/30 p-3 transition-all duration-200 hover:border-border/70 hover:bg-card/30"
             >
-              {/* Source + severity row */}
-              <div className="flex items-start justify-between gap-2 mb-1.5">
-                <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-1.5 flex-wrap">
                   <span
-                    className="text-[8px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded"
+                    className="rounded-full px-2 py-0.5 text-[8px] font-mono uppercase tracking-[0.16em]"
                     style={{
                       color: style.color,
                       backgroundColor: style.bg,
@@ -116,40 +128,40 @@ export function GlobalBenchmarks() {
                   >
                     {benchmark.severity}
                   </span>
-                  <span className="text-[8px] font-mono text-primary/50 px-1 py-0.5 rounded bg-primary/5 border border-primary/10">
+                  <span className="rounded-full border border-primary/10 bg-primary/5 px-2 py-0.5 text-[8px] font-mono uppercase tracking-[0.16em] text-primary/65">
                     {benchmark.source}
                   </span>
+                  <span className="text-[8px] font-mono uppercase tracking-[0.16em] text-muted-foreground/55">
+                    {benchmark.year}
+                  </span>
                 </div>
-                <ExternalLink className="h-3 w-3 text-muted-foreground/30 group-hover:text-primary/60 transition-colors shrink-0" />
+                <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground/30 transition-colors group-hover:text-primary/60" />
               </div>
 
-              {/* Risk title */}
-              <p className="text-[11px] font-medium text-foreground leading-snug mb-1">
+              <p className="mb-1 text-sm font-semibold leading-tight text-foreground">
                 {benchmark.risk}
               </p>
 
-              {/* Report name */}
-              <p className="text-[9px] font-mono text-primary/70 mb-1.5">
+              <p className="mb-1.5 text-[9px] font-mono uppercase tracking-[0.16em] text-primary/70">
                 {benchmark.report}
               </p>
 
-              {/* Description */}
-              <p className="text-[9px] text-muted-foreground leading-relaxed">
+              <p className="text-[13px] leading-tight text-muted-foreground">
                 {benchmark.description}
               </p>
 
-              {/* Relevance */}
-              <div className="mt-2 pt-1.5 border-t border-border/30">
-                <p className="text-[8px] font-mono uppercase tracking-wider text-muted-foreground/50 mb-0.5">
+              <div className="mt-2 rounded-xl border border-border/35 bg-card/25 p-2.5">
+                <p className="mb-1 text-[9px] font-mono uppercase tracking-[0.16em] text-muted-foreground/60">
                   {"Ma'aden"} Relevance
                 </p>
-                <p className="text-[9px] text-primary/80 leading-snug">
+                <p className="text-[13px] leading-tight text-foreground/85">
                   {benchmark.relevance}
                 </p>
               </div>
             </div>
           )
         })}
+        </div>
       </div>
     </div>
   )
